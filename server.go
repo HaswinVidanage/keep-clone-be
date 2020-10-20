@@ -3,6 +3,7 @@ package main
 import (
 	"hackernews-api/graph"
 	"hackernews-api/graph/generated"
+	"hackernews-api/internal/auth"
 	"hackernews-api/internal/pkg/db/migrations/mysql"
 	"log"
 	"net/http"
@@ -22,6 +23,7 @@ func main() {
 	}
 
 	router := chi.NewRouter()
+	router.Use(auth.Middleware())
 
 	database.InitDB()
 	database.Migrate()
