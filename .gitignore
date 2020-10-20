@@ -1,0 +1,7 @@
+# InteliJ files
+.idea
+.idea/workspace.xml
+.env
+
+# project files
+config.yml
