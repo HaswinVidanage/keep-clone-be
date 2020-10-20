@@ -1,0 +1,22 @@
+version: '2.2'
+services:
+  db:
+    build:
+      context: MySQL
+    container_name: hackernews_db
+    image: mysql:5.7
+    ports:
+      - "3305:3306"
+    env_file:
+      - docker.env
+  app:
+    build:
+      context: ""
+    volumes:
+      - ./:/usr/src/hackernews-api
+    container_name: hackernews-api
+    ports:
+      - "8000:8080"
+    tty: true
+    depends_on:
+      - db
