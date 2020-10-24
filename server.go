@@ -4,7 +4,7 @@ import (
 	"hackernews-api/graph"
 	"hackernews-api/graph/generated"
 	"hackernews-api/internal/auth"
-	"hackernews-api/internal/pkg/db/migrations/mysql"
+	"hackernews-api/internal/wire"
 	"log"
 	"net/http"
 	"os"
@@ -25,8 +25,21 @@ func main() {
 	router := chi.NewRouter()
 	router.Use(auth.Middleware())
 
-	database.InitDB()
-	database.Migrate()
+	App, err := wire.GetApp()
+	if err != nil {
+		log.Fatal("Error occurred while DI")
+		return
+	}
+
+	err = App.ConnectionProvider.Db.Ping()
+	if err != nil {
+		log.Fatal("Error while pinging: ", err.Error())
+		return
+	}
+
+	//App.ConnectionProvider.InitDB();
+	//database.InitDB()
+	App.ConnectionProvider.Migrate()
 	server := handler.NewDefaultServer(generated.NewExecutableSchema(generated.Config{Resolvers: &graph.Resolver{}}))
 	router.Handle("/", playground.Handler("GraphQL playground", "/query"))
 	router.Handle("/query", server)
