@@ -24,7 +24,7 @@ type User struct {
 }
 
 type UserService struct {
-	DbProvider database.IConnectionProvider
+	DbProvider *database.DbProvider
 }
 
 var NewUserService = wire.NewSet(
@@ -32,7 +32,7 @@ var NewUserService = wire.NewSet(
 	wire.Bind(new(IUserService), new(*UserService)))
 
 func (us *UserService) Create(ctx context.Context, user User) {
-	statement, err := database.Db.Prepare("INSERT INTO Users(Username,Password) VALUES(?,?)")
+	statement, err := us.DbProvider.Db.Prepare("INSERT INTO Users(Username,Password) VALUES(?,?)")
 	print(statement)
 	if err != nil {
 		log.Fatal(err)
@@ -46,7 +46,7 @@ func (us *UserService) Create(ctx context.Context, user User) {
 
 //GetUserIdByUsername check if a user exists in database by given username
 func (us *UserService) GetUserIdByUsername(ctx context.Context, username string) (int, error) {
-	statement, err := database.Db.Prepare("select ID from Users WHERE Username = ?")
+	statement, err := us.DbProvider.Db.Prepare("select ID from Users WHERE Username = ?")
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -65,7 +65,7 @@ func (us *UserService) GetUserIdByUsername(ctx context.Context, username string)
 }
 
 func (us *UserService) Authenticate(ctx context.Context, user User) bool {
-	statement, err := database.Db.Prepare("select Password from Users WHERE Username = ?")
+	statement, err := us.DbProvider.Db.Prepare("select Password from Users WHERE Username = ?")
 	if err != nil {
 		log.Fatal(err)
 	}

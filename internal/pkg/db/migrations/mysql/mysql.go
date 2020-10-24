@@ -7,11 +7,8 @@ import (
 	"github.com/golang-migrate/migrate"
 	"github.com/golang-migrate/migrate/database/mysql"
 	_ "github.com/golang-migrate/migrate/source/file"
-	"github.com/google/wire"
 	"log"
 )
-
-var Db *sql.DB
 
 type IDbConfig interface {
 	GetDbHost() string
@@ -21,20 +18,16 @@ type IDbConfig interface {
 	GetDbDatabase() string
 }
 
-type IConnectionProvider interface {
+type IDbProvider interface {
 	Migrate()
 }
 
-type ConnectionProvider struct {
+type DbProvider struct {
 	Db *sql.DB
 }
 
-var NewConnectionProvider = wire.NewSet(
-	wire.Struct(new(ConnectionProvider), "*"),
-	wire.Bind(new(IConnectionProvider), new(*ConnectionProvider)))
-
-func InitDB(cfg IDbConfig) *ConnectionProvider {
-	var dbCon ConnectionProvider
+func InitDB(cfg IDbConfig) *DbProvider {
+	var dbCon DbProvider
 	fmt.Println("DB HOST WIRRED : (IF EMPTY DON'T GIVE UP) :", cfg.GetDbPort())
 	db, err := sql.Open("mysql", "sa:qweqwe@tcp(localhost:3305)/hackernews_db")
 	if err != nil {
@@ -45,11 +38,10 @@ func InitDB(cfg IDbConfig) *ConnectionProvider {
 		log.Panic(err)
 	}
 	dbCon.Db = db
-	Db = db
 	return &dbCon
 }
 
-func (cp ConnectionProvider) Migrate() {
+func (cp DbProvider) Migrate() {
 	if err := cp.Db.Ping(); err != nil {
 		log.Fatal(err)
 	}

@@ -21,7 +21,7 @@ type ILinkService interface {
 }
 
 type LinkService struct {
-	ConnectionProvider database.IConnectionProvider
+	DbProvider *database.DbProvider
 }
 
 var NewLinkService = wire.NewSet(
@@ -31,7 +31,7 @@ var NewLinkService = wire.NewSet(
 // function that insert a Link object into database and returns it’s ID.
 func (ls LinkService) Save(link Link) int64 {
 	// prepared statements helps you with security and also performance improvement in some cases.
-	stmt, err := database.Db.Prepare("INSERT INTO Links(Title,Address, UserID) VALUES(?,?, ?)")
+	stmt, err := ls.DbProvider.Db.Prepare("INSERT INTO Links(Title,Address, UserID) VALUES(?,?, ?)")
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -53,7 +53,7 @@ func (ls LinkService) Save(link Link) int64 {
 }
 
 func (ls LinkService) GetAll() []Link {
-	stmt, err := database.Db.Prepare("select L.id, L.title, L.address, L.UserID, U.Username from Links L inner join Users U on L.UserID = U.ID") // changed
+	stmt, err := ls.DbProvider.Db.Prepare("select L.id, L.title, L.address, L.UserID, U.Username from Links L inner join Users U on L.UserID = U.ID") // changed
 	if err != nil {
 		log.Fatal(err)
 	}

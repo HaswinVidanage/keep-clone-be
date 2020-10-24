@@ -18,24 +18,24 @@ import (
 
 func GetApp() (*App, error) {
 	configConfig := config.GetCfg()
-	connectionProvider := database.InitDB(configConfig)
+	dbProvider := database.InitDB(configConfig)
 	userService := &users.UserService{
-		DbProvider: connectionProvider,
+		DbProvider: dbProvider,
 	}
 	linkService := &links.LinkService{
-		ConnectionProvider: connectionProvider,
+		DbProvider: dbProvider,
 	}
 	usersUserService := users.UserService{
-		DbProvider: connectionProvider,
+		DbProvider: dbProvider,
 	}
 	authService := &auth.AuthService{
 		UserService: usersUserService,
 	}
 	app := &App{
-		ConnectionProvider: connectionProvider,
-		UserService:        userService,
-		LinkService:        linkService,
-		NewAuthService:     authService,
+		DbProvider:     dbProvider,
+		UserService:    userService,
+		LinkService:    linkService,
+		NewAuthService: authService,
 	}
 	return app, nil
 }
@@ -43,13 +43,13 @@ func GetApp() (*App, error) {
 // wire.go:
 
 type App struct {
-	ConnectionProvider *database.ConnectionProvider
-	UserService        *users.UserService
-	LinkService        *links.LinkService
-	NewAuthService     *auth.AuthService
+	DbProvider     *database.DbProvider
+	UserService    *users.UserService
+	LinkService    *links.LinkService
+	NewAuthService *auth.AuthService
 }
 
-var dbSet = wire.NewSet(database.InitDB, wire.Bind(new(database.IConnectionProvider), new(*database.ConnectionProvider)))
+var dbSet = wire.NewSet(database.InitDB, wire.Bind(new(database.IDbProvider), new(*database.DbProvider)))
 
 var configSet = wire.NewSet(config.GetCfg, wire.Bind(new(database.IDbConfig), new(*config.Config)))
 

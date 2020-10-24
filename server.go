@@ -30,13 +30,13 @@ func main() {
 	router := chi.NewRouter()
 	router.Use(App.NewAuthService.AuthMiddleware())
 
-	err = App.ConnectionProvider.Db.Ping()
+	err = App.DbProvider.Db.Ping()
 	if err != nil {
 		log.Fatal("Error while pinging: ", err.Error())
 		return
 	}
 
-	App.ConnectionProvider.Migrate()
+	App.DbProvider.Migrate()
 
 	server := handler.NewDefaultServer(generated.NewExecutableSchema(generated.Config{Resolvers: &graph.Resolver{
 		IUserService: App.UserService,

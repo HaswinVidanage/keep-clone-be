@@ -12,15 +12,15 @@ import (
 )
 
 type App struct {
-	ConnectionProvider *database.ConnectionProvider
-	UserService        *users.UserService
-	LinkService        *links.LinkService
-	NewAuthService     *auth.AuthService
+	DbProvider     *database.DbProvider
+	UserService    *users.UserService
+	LinkService    *links.LinkService
+	NewAuthService *auth.AuthService
 }
 
 var dbSet = wire.NewSet(
 	database.InitDB,
-	wire.Bind(new(database.IConnectionProvider), new(*database.ConnectionProvider)),
+	wire.Bind(new(database.IDbProvider), new(*database.DbProvider)),
 )
 
 var configSet = wire.NewSet(
