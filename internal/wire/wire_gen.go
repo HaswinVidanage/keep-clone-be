@@ -9,6 +9,7 @@ import (
 	"github.com/google/wire"
 	"hackernews-api/internal/config"
 	"hackernews-api/internal/pkg/db/migrations/mysql"
+	"hackernews-api/internal/users"
 )
 
 // Injectors from wire.go:
@@ -16,8 +17,12 @@ import (
 func GetApp() (*App, error) {
 	configConfig := config.GetCfg()
 	connectionProvider := database.InitDB(configConfig)
+	userService := &users.UserService{
+		DbProvider: connectionProvider,
+	}
 	app := &App{
 		ConnectionProvider: connectionProvider,
+		UserService:        userService,
 	}
 	return app, nil
 }
@@ -26,8 +31,11 @@ func GetApp() (*App, error) {
 
 type App struct {
 	ConnectionProvider *database.ConnectionProvider
+	UserService        *users.UserService
 }
 
 var dbSet = wire.NewSet(database.InitDB, wire.Bind(new(database.IConnectionProvider), new(*database.ConnectionProvider)))
 
 var configSet = wire.NewSet(config.GetCfg, wire.Bind(new(database.IDbConfig), new(*config.Config)))
+
+var serviceSet = wire.NewSet(users.NewUserService)

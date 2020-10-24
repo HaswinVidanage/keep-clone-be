@@ -37,7 +37,7 @@ func (r *mutationResolver) CreateUser(ctx context.Context, input model.NewUser) 
 	var user users.User
 	user.Username = input.Username
 	user.Password = input.Password
-	user.Create()
+	r.IUserService.Create(user)
 	token, err := jwt.GenerateToken(user.Username)
 	if err != nil {
 		return "", err
@@ -49,7 +49,7 @@ func (r *mutationResolver) Login(ctx context.Context, input model.Login) (string
 	var user users.User
 	user.Username = input.Username
 	user.Password = input.Password
-	correct := user.Authenticate()
+	correct := r.IUserService.Authenticate(user)
 	if !correct {
 		// 1
 		return "", &users.WrongUsernameOrPasswordError{}

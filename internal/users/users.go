@@ -3,11 +3,18 @@ package users
 import (
 	"database/sql"
 	_ "database/sql"
+	"github.com/google/wire"
 	"golang.org/x/crypto/bcrypt"
 	"hackernews-api/internal/pkg/db/migrations/mysql"
 
 	"log"
 )
+
+type IUserService interface {
+	Create(user User)
+	GetUserIdByUsername(username string) (int, error)
+	Authenticate(user User) bool
+}
 
 type User struct {
 	ID       string `json:"id"`
@@ -15,7 +22,15 @@ type User struct {
 	Password string `json:"password"`
 }
 
-func (user *User) Create() {
+type UserService struct {
+	DbProvider database.IConnectionProvider
+}
+
+var NewUserService = wire.NewSet(
+	wire.Struct(new(UserService), "*"),
+	wire.Bind(new(IUserService), new(*UserService)))
+
+func (us *UserService) Create(user User) {
 	statement, err := database.Db.Prepare("INSERT INTO Users(Username,Password) VALUES(?,?)")
 	print(statement)
 	if err != nil {
@@ -29,7 +44,7 @@ func (user *User) Create() {
 }
 
 //GetUserIdByUsername check if a user exists in database by given username
-func GetUserIdByUsername(username string) (int, error) {
+func (us *UserService) GetUserIdByUsername(username string) (int, error) {
 	statement, err := database.Db.Prepare("select ID from Users WHERE Username = ?")
 	if err != nil {
 		log.Fatal(err)
@@ -48,7 +63,7 @@ func GetUserIdByUsername(username string) (int, error) {
 	return Id, nil
 }
 
-func (user *User) Authenticate() bool {
+func (us *UserService) Authenticate(user User) bool {
 	statement, err := database.Db.Prepare("select Password from Users WHERE Username = ?")
 	if err != nil {
 		log.Fatal(err)

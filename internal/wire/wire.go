@@ -6,10 +6,12 @@ import (
 	"github.com/google/wire"
 	"hackernews-api/internal/config"
 	"hackernews-api/internal/pkg/db/migrations/mysql"
+	"hackernews-api/internal/users"
 )
 
 type App struct {
 	ConnectionProvider *database.ConnectionProvider
+	UserService        *users.UserService
 }
 
 var dbSet = wire.NewSet(
@@ -22,10 +24,15 @@ var configSet = wire.NewSet(
 	wire.Bind(new(database.IDbConfig), new(*config.Config)),
 )
 
+var serviceSet = wire.NewSet(
+	users.NewUserService,
+)
+
 func GetApp() (*App, error) {
 	panic(wire.Build(
 		configSet,
 		dbSet,
+		serviceSet,
 		wire.Struct(new(App), "*"),
 	))
 
