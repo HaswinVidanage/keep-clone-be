@@ -1,6 +1,7 @@
 package links
 
 import (
+	"github.com/google/wire"
 	"hackernews-api/internal/pkg/db/migrations/mysql"
 	"hackernews-api/internal/users"
 	"log"
@@ -14,8 +15,21 @@ type Link struct {
 	User    *users.User
 }
 
+type ILinkService interface {
+	Save(link Link) int64
+	GetAll() []Link
+}
+
+type LinkService struct {
+	ConnectionProvider database.IConnectionProvider
+}
+
+var NewLinkService = wire.NewSet(
+	wire.Struct(new(LinkService), "*"),
+	wire.Bind(new(ILinkService), new(*LinkService)))
+
 // function that insert a Link object into database and returns it’s ID.
-func (link Link) Save() int64 {
+func (ls LinkService) Save(link Link) int64 {
 	// prepared statements helps you with security and also performance improvement in some cases.
 	stmt, err := database.Db.Prepare("INSERT INTO Links(Title,Address, UserID) VALUES(?,?, ?)")
 	if err != nil {
@@ -38,7 +52,7 @@ func (link Link) Save() int64 {
 	return id
 }
 
-func GetAll() []Link {
+func (ls LinkService) GetAll() []Link {
 	stmt, err := database.Db.Prepare("select L.id, L.title, L.address, L.UserID, U.Username from Links L inner join Users U on L.UserID = U.ID") // changed
 	if err != nil {
 		log.Fatal(err)

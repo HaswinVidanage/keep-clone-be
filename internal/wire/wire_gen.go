@@ -8,6 +8,7 @@ package wire
 import (
 	"github.com/google/wire"
 	"hackernews-api/internal/config"
+	"hackernews-api/internal/links"
 	"hackernews-api/internal/pkg/db/migrations/mysql"
 	"hackernews-api/internal/users"
 )
@@ -20,9 +21,13 @@ func GetApp() (*App, error) {
 	userService := &users.UserService{
 		DbProvider: connectionProvider,
 	}
+	linkService := &links.LinkService{
+		ConnectionProvider: connectionProvider,
+	}
 	app := &App{
 		ConnectionProvider: connectionProvider,
 		UserService:        userService,
+		LinkService:        linkService,
 	}
 	return app, nil
 }
@@ -32,10 +37,11 @@ func GetApp() (*App, error) {
 type App struct {
 	ConnectionProvider *database.ConnectionProvider
 	UserService        *users.UserService
+	LinkService        *links.LinkService
 }
 
 var dbSet = wire.NewSet(database.InitDB, wire.Bind(new(database.IConnectionProvider), new(*database.ConnectionProvider)))
 
 var configSet = wire.NewSet(config.GetCfg, wire.Bind(new(database.IDbConfig), new(*config.Config)))
 
-var serviceSet = wire.NewSet(users.NewUserService)
+var serviceSet = wire.NewSet(users.NewUserService, links.NewLinkService)

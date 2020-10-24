@@ -1,6 +1,9 @@
 package graph
 
-import "hackernews-api/internal/users"
+import (
+	"hackernews-api/internal/links"
+	"hackernews-api/internal/users"
+)
 
 // This file will not be regenerated automatically.
 //
@@ -8,4 +11,5 @@ import "hackernews-api/internal/users"
 
 type Resolver struct {
 	users.IUserService
+	links.ILinkService
 }

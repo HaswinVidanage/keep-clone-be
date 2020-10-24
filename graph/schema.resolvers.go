@@ -25,7 +25,7 @@ func (r *mutationResolver) CreateLink(ctx context.Context, input model.NewLink) 
 	link.Title = input.Title
 	link.Address = input.Address
 	link.User = user
-	linkID := link.Save()
+	linkID := r.Resolver.Save(link)
 	return &model.Link{
 		ID:      strconv.FormatInt(linkID, 10),
 		Title:   link.Title,
@@ -76,7 +76,7 @@ func (r *mutationResolver) RefreshToken(ctx context.Context, input model.Refresh
 func (r *queryResolver) Links(ctx context.Context) ([]*model.Link, error) {
 	var resultLinks []*model.Link
 	var dbLinks []links.Link
-	dbLinks = links.GetAll()
+	dbLinks = r.Resolver.GetAll()
 	for _, link := range dbLinks {
 		grahpqlUser := &model.User{
 			ID:   link.User.ID,
