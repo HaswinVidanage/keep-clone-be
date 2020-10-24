@@ -3,7 +3,6 @@ package main
 import (
 	"hackernews-api/graph"
 	"hackernews-api/graph/generated"
-	"hackernews-api/internal/auth"
 	"hackernews-api/internal/wire"
 	"log"
 	"net/http"
@@ -22,14 +21,14 @@ func main() {
 		port = defaultPort
 	}
 
-	router := chi.NewRouter()
-	router.Use(auth.Middleware())
-
 	App, err := wire.GetApp()
 	if err != nil {
 		log.Fatal("Error occurred while DI")
 		return
 	}
+
+	router := chi.NewRouter()
+	router.Use(App.NewAuthService.AuthMiddleware())
 
 	err = App.ConnectionProvider.Db.Ping()
 	if err != nil {
