@@ -1,6 +1,7 @@
 package users
 
 import (
+	"context"
 	"database/sql"
 	_ "database/sql"
 	"github.com/google/wire"
@@ -11,9 +12,9 @@ import (
 )
 
 type IUserService interface {
-	Create(user User)
-	GetUserIdByUsername(username string) (int, error)
-	Authenticate(user User) bool
+	Create(ctx context.Context, user User)
+	GetUserIdByUsername(ctx context.Context, username string) (int, error)
+	Authenticate(ctx context.Context, user User) bool
 }
 
 type User struct {
@@ -30,7 +31,7 @@ var NewUserService = wire.NewSet(
 	wire.Struct(new(UserService), "*"),
 	wire.Bind(new(IUserService), new(*UserService)))
 
-func (us *UserService) Create(user User) {
+func (us *UserService) Create(ctx context.Context, user User) {
 	statement, err := database.Db.Prepare("INSERT INTO Users(Username,Password) VALUES(?,?)")
 	print(statement)
 	if err != nil {
@@ -44,7 +45,7 @@ func (us *UserService) Create(user User) {
 }
 
 //GetUserIdByUsername check if a user exists in database by given username
-func (us *UserService) GetUserIdByUsername(username string) (int, error) {
+func (us *UserService) GetUserIdByUsername(ctx context.Context, username string) (int, error) {
 	statement, err := database.Db.Prepare("select ID from Users WHERE Username = ?")
 	if err != nil {
 		log.Fatal(err)
@@ -63,7 +64,7 @@ func (us *UserService) GetUserIdByUsername(username string) (int, error) {
 	return Id, nil
 }
 
-func (us *UserService) Authenticate(user User) bool {
+func (us *UserService) Authenticate(ctx context.Context, user User) bool {
 	statement, err := database.Db.Prepare("select Password from Users WHERE Username = ?")
 	if err != nil {
 		log.Fatal(err)
