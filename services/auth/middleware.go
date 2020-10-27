@@ -2,8 +2,9 @@ package auth
 
 import (
 	"context"
+	"github.com/google/wire"
 	"hackernews-api/internal/pkg/jwt"
-	"hackernews-api/internal/users"
+	"hackernews-api/services/users"
 	"net/http"
 	"strconv"
 )
@@ -14,7 +15,19 @@ type contextKey struct {
 	name string
 }
 
-func Middleware() func(http.Handler) http.Handler {
+type IAuthService interface {
+	AuthMiddleware() func(http.Handler) http.Handler
+}
+
+type AuthService struct {
+	UserService users.UserService
+}
+
+var NewAuthService = wire.NewSet(
+	wire.Struct(new(AuthService), "*"),
+	wire.Bind(new(IAuthService), new(*AuthService)))
+
+func (as AuthService) AuthMiddleware() func(http.Handler) http.Handler {
 	return func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			header := r.Header.Get("Authorization")
@@ -35,7 +48,7 @@ func Middleware() func(http.Handler) http.Handler {
 
 			// create user and check if user exists in db
 			user := users.User{Username: username}
-			id, err := users.GetUserIdByUsername(username)
+			id, err := as.UserService.GetUserIdByUsername(r.Context(), username)
 			if err != nil {
 				next.ServeHTTP(w, r)
 				return

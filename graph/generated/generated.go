@@ -269,10 +269,6 @@ type User {
   name: String!
 }
 
-type Query {
-  links: [Link!]!
-}
-
 input NewLink {
   title: String!
   address: String!
@@ -297,6 +293,10 @@ type Mutation {
   createUser(input: NewUser!): String!
   login(input: Login!): String!
   refreshToken(input: RefreshTokenInput!): String!
+}
+
+type Query {
+  links: [Link!]!
 }`, BuiltIn: false},
 }
 var parsedSchema = gqlparser.MustLoadSchema(sources...)

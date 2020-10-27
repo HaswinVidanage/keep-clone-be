@@ -8,10 +8,10 @@ import (
 	"fmt"
 	"hackernews-api/graph/generated"
 	"hackernews-api/graph/model"
-	"hackernews-api/internal/auth"
-	"hackernews-api/internal/links"
 	"hackernews-api/internal/pkg/jwt"
-	"hackernews-api/internal/users"
+	"hackernews-api/services/auth"
+	"hackernews-api/services/links"
+	"hackernews-api/services/users"
 	"strconv"
 )
 
@@ -25,7 +25,7 @@ func (r *mutationResolver) CreateLink(ctx context.Context, input model.NewLink) 
 	link.Title = input.Title
 	link.Address = input.Address
 	link.User = user
-	linkID := link.Save()
+	linkID := r.Resolver.Save(link)
 	return &model.Link{
 		ID:      strconv.FormatInt(linkID, 10),
 		Title:   link.Title,
@@ -37,7 +37,7 @@ func (r *mutationResolver) CreateUser(ctx context.Context, input model.NewUser) 
 	var user users.User
 	user.Username = input.Username
 	user.Password = input.Password
-	user.Create()
+	r.IUserService.Create(ctx, user)
 	token, err := jwt.GenerateToken(user.Username)
 	if err != nil {
 		return "", err
@@ -49,7 +49,7 @@ func (r *mutationResolver) Login(ctx context.Context, input model.Login) (string
 	var user users.User
 	user.Username = input.Username
 	user.Password = input.Password
-	correct := user.Authenticate()
+	correct := r.IUserService.Authenticate(ctx, user)
 	if !correct {
 		// 1
 		return "", &users.WrongUsernameOrPasswordError{}
@@ -76,7 +76,7 @@ func (r *mutationResolver) RefreshToken(ctx context.Context, input model.Refresh
 func (r *queryResolver) Links(ctx context.Context) ([]*model.Link, error) {
 	var resultLinks []*model.Link
 	var dbLinks []links.Link
-	dbLinks = links.GetAll()
+	dbLinks = r.Resolver.GetAll()
 	for _, link := range dbLinks {
 		grahpqlUser := &model.User{
 			ID:   link.User.ID,
