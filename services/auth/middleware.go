@@ -4,7 +4,7 @@ import (
 	"context"
 	"github.com/google/wire"
 	"hackernews-api/internal/pkg/jwt"
-	"hackernews-api/internal/users"
+	"hackernews-api/services/users"
 	"net/http"
 	"strconv"
 )

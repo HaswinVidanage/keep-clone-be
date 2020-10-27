@@ -4,11 +4,11 @@ package wire
 
 import (
 	"github.com/google/wire"
-	"hackernews-api/internal/auth"
 	"hackernews-api/internal/config"
-	"hackernews-api/internal/links"
 	"hackernews-api/internal/pkg/db/migrations/mysql"
-	"hackernews-api/internal/users"
+	"hackernews-api/services/auth"
+	"hackernews-api/services/links"
+	"hackernews-api/services/users"
 )
 
 type App struct {

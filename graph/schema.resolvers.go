@@ -8,10 +8,10 @@ import (
 	"fmt"
 	"hackernews-api/graph/generated"
 	"hackernews-api/graph/model"
-	"hackernews-api/internal/auth"
-	"hackernews-api/internal/links"
 	"hackernews-api/internal/pkg/jwt"
-	"hackernews-api/internal/users"
+	"hackernews-api/services/auth"
+	"hackernews-api/services/links"
+	"hackernews-api/services/users"
 	"strconv"
 )
 

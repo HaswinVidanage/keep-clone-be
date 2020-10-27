@@ -1,8 +1,10 @@
 package graph
 
+//go:generate go run github.com/99designs/gqlgen
+
 import (
-	"hackernews-api/internal/links"
-	"hackernews-api/internal/users"
+	"hackernews-api/services/links"
+	"hackernews-api/services/users"
 )
 
 // This file will not be regenerated automatically.
