@@ -43,3 +43,7 @@ type Mutation {
 type Query {
   links: [Link!]!
 }
+
+type Subscription {
+  subscriptionLinkAdded: Link!
+}

@@ -12,6 +12,7 @@ import (
 	"hackernews-api/services/auth"
 	"hackernews-api/services/links"
 	"hackernews-api/services/users"
+	"math/rand"
 	"strconv"
 )
 
@@ -26,11 +27,19 @@ func (r *mutationResolver) CreateLink(ctx context.Context, input model.NewLink) 
 	link.Address = input.Address
 	link.User = user
 	linkID := r.Resolver.Save(link)
-	return &model.Link{
+
+	newModel := &model.Link{
 		ID:      strconv.FormatInt(linkID, 10),
 		Title:   link.Title,
 		Address: link.Address,
-	}, nil
+	}
+
+	//add new chanel in observer
+	for _, observer := range addLinkObserver {
+		observer <- newModel
+	}
+
+	return newModel, nil
 }
 
 func (r *mutationResolver) CreateUser(ctx context.Context, input model.NewUser) (string, error) {
@@ -87,11 +96,51 @@ func (r *queryResolver) Links(ctx context.Context) ([]*model.Link, error) {
 	return resultLinks, nil
 }
 
+func (r *subscriptionResolver) SubscriptionLinkAdded(ctx context.Context) (<-chan *model.Link, error) {
+	id := randString(8)
+	fmt.Println("Random id: ", id)
+	events := make(chan *model.Link, 1)
+
+	go func() {
+		<-ctx.Done()
+		delete(addLinkObserver, id)
+	}()
+
+	addLinkObserver[id] = events
+	return events, nil
+}
+
 // Mutation returns generated.MutationResolver implementation.
 func (r *Resolver) Mutation() generated.MutationResolver { return &mutationResolver{r} }
 
 // Query returns generated.QueryResolver implementation.
 func (r *Resolver) Query() generated.QueryResolver { return &queryResolver{r} }
 
+// Subscription returns generated.SubscriptionResolver implementation.
+func (r *Resolver) Subscription() generated.SubscriptionResolver { return &subscriptionResolver{r} }
+
 type mutationResolver struct{ *Resolver }
 type queryResolver struct{ *Resolver }
+type subscriptionResolver struct{ *Resolver }
+
+// !!! WARNING !!!
+// The code below was going to be deleted when updating resolvers. It has been copied here so you have
+// one last chance to move it out of harms way if you want. There are two reasons this happens:
+//  - When renaming or deleting a resolver the old code will be put in here. You can safely delete
+//    it when you're done.
+//  - You have helper methods in this file. Move them out to keep these resolver files clean.
+var addLinkObserver map[string]chan *model.Link
+
+func init() {
+	addLinkObserver = map[string]chan *model.Link{}
+}
+
+var letterRunes = []rune("abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ")
+
+func randString(n int) string {
+	b := make([]rune, n)
+	for i := range b {
+		b[i] = letterRunes[rand.Intn(len(letterRunes))]
+	}
+	return string(b)
+}
