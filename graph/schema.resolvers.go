@@ -12,7 +12,6 @@ import (
 	"hackernews-api/services/auth"
 	"hackernews-api/services/links"
 	"hackernews-api/services/users"
-	"strconv"
 )
 
 func (r *mutationResolver) CreateLink(ctx context.Context, input model.NewLink) (*model.Link, error) {
@@ -27,7 +26,7 @@ func (r *mutationResolver) CreateLink(ctx context.Context, input model.NewLink) 
 	link.User = user
 	linkID := r.Resolver.Save(link)
 	return &model.Link{
-		ID:      strconv.FormatInt(linkID, 10),
+		ID:      int(linkID),
 		Title:   link.Title,
 		Address: link.Address,
 	}, nil

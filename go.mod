@@ -40,5 +40,7 @@ require (
 	google.golang.org/grpc v1.31.0 // indirect
 	google.golang.org/protobuf v1.25.0 // indirect
 	gopkg.in/yaml.v2 v2.2.7 // indirect
+	gorm.io/driver/mysql v1.0.3
+	gorm.io/gorm v1.20.5
 	gotest.tools/v3 v3.0.2 // indirect
 )

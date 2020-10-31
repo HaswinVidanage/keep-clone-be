@@ -30,11 +30,11 @@ func main() {
 	router := chi.NewRouter()
 	router.Use(App.NewAuthService.AuthMiddleware())
 
-	err = App.DbProvider.Db.Ping()
-	if err != nil {
-		log.Fatal("Error while pinging: ", err.Error())
-		return
-	}
+	//err = App.DbProvider.Db.Ping()
+	//if err != nil {
+	//	log.Fatal("Error while pinging: ", err.Error())
+	//	return
+	//}
 
 	App.DbProvider.Migrate()
 
