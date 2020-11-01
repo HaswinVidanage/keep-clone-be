@@ -4,6 +4,7 @@ package graph
 
 import (
 	"hackernews-api/services/links"
+	"hackernews-api/services/note"
 	"hackernews-api/services/users"
 )
 
@@ -14,4 +15,5 @@ import (
 type Resolver struct {
 	users.IUserService
 	links.ILinkService
+	note.INoteService
 }

@@ -11,6 +11,7 @@ import (
 	"hackernews-api/internal/pkg/db/migrations/mysql"
 	"hackernews-api/services/auth"
 	"hackernews-api/services/links"
+	"hackernews-api/services/note"
 	"hackernews-api/services/users"
 )
 
@@ -25,6 +26,9 @@ func GetApp() (*App, error) {
 	linkService := &links.LinkService{
 		DbProvider: dbProvider,
 	}
+	noteService := &note.NoteService{
+		DbProvider: dbProvider,
+	}
 	usersUserService := users.UserService{
 		DbProvider: dbProvider,
 	}
@@ -35,6 +39,7 @@ func GetApp() (*App, error) {
 		DbProvider:     dbProvider,
 		UserService:    userService,
 		LinkService:    linkService,
+		NoteService:    noteService,
 		NewAuthService: authService,
 	}
 	return app, nil
@@ -46,6 +51,7 @@ type App struct {
 	DbProvider     *database.DbProvider
 	UserService    *users.UserService
 	LinkService    *links.LinkService
+	NoteService    *note.NoteService
 	NewAuthService *auth.AuthService
 }
 
@@ -53,4 +59,4 @@ var dbSet = wire.NewSet(database.InitDB, wire.Bind(new(database.IDbProvider), ne
 
 var configSet = wire.NewSet(config.GetCfg, wire.Bind(new(database.IDbConfig), new(*config.Config)))
 
-var serviceSet = wire.NewSet(users.NewUserService, links.NewLinkService, auth.NewAuthService)
+var serviceSet = wire.NewSet(users.NewUserService, links.NewLinkService, auth.NewAuthService, note.NewNoteService)

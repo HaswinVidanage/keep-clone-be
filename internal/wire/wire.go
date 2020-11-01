@@ -8,6 +8,7 @@ import (
 	"hackernews-api/internal/pkg/db/migrations/mysql"
 	"hackernews-api/services/auth"
 	"hackernews-api/services/links"
+	"hackernews-api/services/note"
 	"hackernews-api/services/users"
 )
 
@@ -15,6 +16,7 @@ type App struct {
 	DbProvider     *database.DbProvider
 	UserService    *users.UserService
 	LinkService    *links.LinkService
+	NoteService    *note.NoteService
 	NewAuthService *auth.AuthService
 }
 
@@ -32,6 +34,7 @@ var serviceSet = wire.NewSet(
 	users.NewUserService,
 	links.NewLinkService,
 	auth.NewAuthService,
+	note.NewNoteService,
 )
 
 func GetApp() (*App, error) {

@@ -19,9 +19,21 @@ type NewLink struct {
 	Address string `json:"address"`
 }
 
+type NewNote struct {
+	Title   string `json:"title"`
+	Content string `json:"content"`
+}
+
 type NewUser struct {
 	Username string `json:"username"`
 	Password string `json:"password"`
+}
+
+type Note struct {
+	ID      string `json:"id"`
+	Title   string `json:"title"`
+	Content string `json:"content"`
+	User    *User  `json:"user"`
 }
 
 type RefreshTokenInput struct {

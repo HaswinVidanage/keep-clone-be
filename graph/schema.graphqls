@@ -9,6 +9,13 @@ type Link {
   user: User!
 }
 
+type Note {
+  id: ID!
+  title: String!
+  content: String!
+  user: User!
+}
+
 type User {
   id: ID!
   name: String!
@@ -17,6 +24,11 @@ type User {
 input NewLink {
   title: String!
   address: String!
+}
+
+input NewNote {
+  title: String!
+  content: String!
 }
 
 input RefreshTokenInput{
@@ -35,6 +47,7 @@ input Login {
 
 type Mutation {
   createLink(input: NewLink!): Link!
+  createNote(input: NewNote!): Note!
   createUser(input: NewUser!): String!
   login(input: Login!): String!
   refreshToken(input: RefreshTokenInput!): String!
@@ -42,8 +55,10 @@ type Mutation {
 
 type Query {
   links: [Link!]!
+  notes: [Note!]!
 }
 
 type Subscription {
   subscriptionLinkAdded: Link!
+  SubscriptionNoteAdded: Note!
 }

@@ -11,6 +11,7 @@ import (
 	"hackernews-api/internal/pkg/jwt"
 	"hackernews-api/services/auth"
 	"hackernews-api/services/links"
+	"hackernews-api/services/note"
 	"hackernews-api/services/users"
 	"math/rand"
 	"strconv"
@@ -26,7 +27,7 @@ func (r *mutationResolver) CreateLink(ctx context.Context, input model.NewLink) 
 	link.Title = input.Title
 	link.Address = input.Address
 	link.User = user
-	linkID := r.Resolver.Save(link)
+	linkID := r.Resolver.ILinkService.Save(link)
 
 	newModel := &model.Link{
 		ID:      strconv.FormatInt(linkID, 10),
@@ -36,6 +37,32 @@ func (r *mutationResolver) CreateLink(ctx context.Context, input model.NewLink) 
 
 	//add new chanel in observer
 	for _, observer := range addLinkObserver {
+		observer <- newModel
+	}
+
+	return newModel, nil
+}
+
+func (r *mutationResolver) CreateNote(ctx context.Context, input model.NewNote) (*model.Note, error) {
+	user := auth.ForContext(ctx)
+	if user == nil {
+		return &model.Note{}, fmt.Errorf("access denied")
+	}
+
+	var note note.Note
+	note.Title = input.Title
+	note.Content = input.Content
+	note.User = user
+	noteID := r.Resolver.INoteService.Save(note)
+
+	newModel := &model.Note{
+		ID:      strconv.FormatInt(noteID, 10),
+		Title:   note.Title,
+		Content: note.Content,
+	}
+
+	//add new chanel in observer
+	for _, observer := range addNoteObserver {
 		observer <- newModel
 	}
 
@@ -85,7 +112,7 @@ func (r *mutationResolver) RefreshToken(ctx context.Context, input model.Refresh
 func (r *queryResolver) Links(ctx context.Context) ([]*model.Link, error) {
 	var resultLinks []*model.Link
 	var dbLinks []links.Link
-	dbLinks = r.Resolver.GetAll()
+	dbLinks = r.Resolver.ILinkService.GetAll()
 	for _, link := range dbLinks {
 		grahpqlUser := &model.User{
 			ID:   link.User.ID,
@@ -94,6 +121,20 @@ func (r *queryResolver) Links(ctx context.Context) ([]*model.Link, error) {
 		resultLinks = append(resultLinks, &model.Link{ID: link.ID, Title: link.Title, Address: link.Address, User: grahpqlUser})
 	}
 	return resultLinks, nil
+}
+
+func (r *queryResolver) Notes(ctx context.Context) ([]*model.Note, error) {
+	var resultNotes []*model.Note
+	var dbNotes []note.Note
+	dbNotes = r.Resolver.INoteService.GetAll()
+	for _, note := range dbNotes {
+		grahpqlUser := &model.User{
+			ID:   note.User.ID,
+			Name: note.User.Username,
+		}
+		resultNotes = append(resultNotes, &model.Note{ID: note.ID, Title: note.Title, Content: note.Content, User: grahpqlUser})
+	}
+	return resultNotes, nil
 }
 
 func (r *subscriptionResolver) SubscriptionLinkAdded(ctx context.Context) (<-chan *model.Link, error) {
@@ -107,6 +148,20 @@ func (r *subscriptionResolver) SubscriptionLinkAdded(ctx context.Context) (<-cha
 	}()
 
 	addLinkObserver[id] = events
+	return events, nil
+}
+
+func (r *subscriptionResolver) SubscriptionNoteAdded(ctx context.Context) (<-chan *model.Note, error) {
+	id := randString(8)
+	fmt.Println("Random id: ", id)
+	events := make(chan *model.Note, 1)
+
+	go func() {
+		<-ctx.Done()
+		delete(addNoteObserver, id)
+	}()
+
+	addNoteObserver[id] = events
 	return events, nil
 }
 
@@ -130,9 +185,11 @@ type subscriptionResolver struct{ *Resolver }
 //    it when you're done.
 //  - You have helper methods in this file. Move them out to keep these resolver files clean.
 var addLinkObserver map[string]chan *model.Link
+var addNoteObserver map[string]chan *model.Note
 
 func init() {
 	addLinkObserver = map[string]chan *model.Link{}
+	addNoteObserver = map[string]chan *model.Note{}
 }
 
 var letterRunes = []rune("abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ")
