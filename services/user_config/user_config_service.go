@@ -36,7 +36,7 @@ func (ucs UserConfigService) GetConfig(ctx context.Context) *UserConfig {
 		log.Fatal("userCtx is nil")
 	}
 
-	stmt, err := ucs.DbProvider.Db.Prepare("select uc.id, uc.isDarkMode, uc.isListMode, uc.fk_user, u.Username from user_config uc inner join Users u on uc.fk_user = u.ID where uc.fk_user = ?")
+	stmt, err := ucs.DbProvider.Db.Prepare("select uc.id, uc.isDarkMode, uc.isListMode, uc.fk_user, u.name from user_config uc inner join user u on uc.fk_user = u.ID where uc.fk_user = ?")
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -49,18 +49,18 @@ func (ucs UserConfigService) GetConfig(ctx context.Context) *UserConfig {
 	defer rows.Close()
 
 	var userConfigs []UserConfig
-	var username string
+	var name string
 	var id string
 	for rows.Next() {
 		var userConfig UserConfig
-		err := rows.Scan(&userConfig.ID, &userConfig.IsDarkMode, &userConfig.IsListMode, &id, &username)
+		err := rows.Scan(&userConfig.ID, &userConfig.IsDarkMode, &userConfig.IsListMode, &id, &name)
 		if err != nil {
 			log.Fatal(err)
 		}
 
 		userConfig.User = &users.User{
-			ID:       id,
-			Username: username,
+			ID:   id,
+			Name: name,
 		}
 
 		userConfigs = append(userConfigs, userConfig)

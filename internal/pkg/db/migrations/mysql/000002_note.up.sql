@@ -3,6 +3,6 @@ CREATE TABLE IF NOT EXISTS note(
   title VARCHAR (255) ,
   content VARCHAR (255) ,
   fk_user INT,
-  FOREIGN KEY (fk_user) REFERENCES Users(ID) ,
-  PRIMARY KEY (ID)
+  FOREIGN KEY (fk_user) REFERENCES user(id) ,
+  PRIMARY KEY (id)
 )

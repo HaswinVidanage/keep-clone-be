@@ -3,6 +3,6 @@ CREATE TABLE IF NOT EXISTS user_config(
   isDarkMode BOOL DEFAULT FALSE,
   isListMode BOOL DEFAULT TRUE,
   fk_user INT NOT NULL UNIQUE,
-  FOREIGN KEY (fk_user) REFERENCES Users(ID) ,
-  PRIMARY KEY (ID)
+  FOREIGN KEY (fk_user) REFERENCES user(id) ,
+  PRIMARY KEY (id)
 )

@@ -10,7 +10,6 @@ import (
 	"hackernews-api/internal/config"
 	"hackernews-api/internal/pkg/db/migrations/mysql"
 	"hackernews-api/services/auth"
-	"hackernews-api/services/links"
 	"hackernews-api/services/note"
 	"hackernews-api/services/user_config"
 	"hackernews-api/services/users"
@@ -22,9 +21,6 @@ func GetApp() (*App, error) {
 	configConfig := config.GetCfg()
 	dbProvider := database.InitDB(configConfig)
 	userService := &users.UserService{
-		DbProvider: dbProvider,
-	}
-	linkService := &links.LinkService{
 		DbProvider: dbProvider,
 	}
 	noteService := &note.NoteService{
@@ -42,7 +38,6 @@ func GetApp() (*App, error) {
 	app := &App{
 		DbProvider:        dbProvider,
 		UserService:       userService,
-		LinkService:       linkService,
 		NoteService:       noteService,
 		NewAuthService:    authService,
 		UserConfigService: userConfigService,
@@ -55,7 +50,6 @@ func GetApp() (*App, error) {
 type App struct {
 	DbProvider        *database.DbProvider
 	UserService       *users.UserService
-	LinkService       *links.LinkService
 	NoteService       *note.NoteService
 	NewAuthService    *auth.AuthService
 	UserConfigService *user_config.UserConfigService
@@ -65,4 +59,4 @@ var dbSet = wire.NewSet(database.InitDB, wire.Bind(new(database.IDbProvider), ne
 
 var configSet = wire.NewSet(config.GetCfg, wire.Bind(new(database.IDbConfig), new(*config.Config)))
 
-var serviceSet = wire.NewSet(users.NewUserService, links.NewLinkService, auth.NewAuthService, note.NewNoteService, user_config.NewUserConfigService)
+var serviceSet = wire.NewSet(users.NewUserService, auth.NewAuthService, note.NewNoteService, user_config.NewUserConfigService)

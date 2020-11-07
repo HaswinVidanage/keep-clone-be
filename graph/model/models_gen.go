@@ -2,15 +2,8 @@
 
 package model
 
-type Link struct {
-	ID      string `json:"id"`
-	Title   string `json:"title"`
-	Address string `json:"address"`
-	User    *User  `json:"user"`
-}
-
 type Login struct {
-	Username string `json:"username"`
+	Name     string `json:"name"`
 	Password string `json:"password"`
 }
 
@@ -25,7 +18,7 @@ type NewNote struct {
 }
 
 type NewUser struct {
-	Username string `json:"username"`
+	Name     string `json:"name"`
 	Password string `json:"password"`
 }
 

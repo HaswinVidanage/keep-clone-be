@@ -50,7 +50,7 @@ func (ns NoteService) Save(note Note) int64 {
 }
 
 func (ns NoteService) GetAll() []Note {
-	stmt, err := ns.DbProvider.Db.Prepare("select n.id, n.title, n.content, n.fk_user, U.Username from note n inner join Users U on n.fk_user = U.ID") // changed
+	stmt, err := ns.DbProvider.Db.Prepare("select n.id, n.title, n.content, n.fk_user, u.name from note n inner join user u on n.fk_user = u.ID") // changed
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -62,17 +62,17 @@ func (ns NoteService) GetAll() []Note {
 	defer rows.Close()
 
 	var notes []Note
-	var username string
+	var name string
 	var id string
 	for rows.Next() {
 		var note Note
-		err := rows.Scan(&note.ID, &note.Title, &note.Content, &id, &username)
+		err := rows.Scan(&note.ID, &note.Title, &note.Content, &id, &name)
 		if err != nil {
 			log.Fatal(err)
 		}
 		note.User = &users.User{
-			ID:       id,
-			Username: username,
+			ID:   id,
+			Name: name,
 		}
 		notes = append(notes, note)
 	}

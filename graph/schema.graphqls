@@ -2,13 +2,6 @@
 #
 # https://gqlgen.com/getting-started/
 
-type Link {
-  id: ID!
-  title: String!
-  address: String!
-  user: User!
-}
-
 type Note {
   id: ID!
   title: String!
@@ -43,12 +36,12 @@ input RefreshTokenInput{
 }
 
 input NewUser {
-  username: String!
+  name: String!
   password: String!
 }
 
 input Login {
-  username: String!
+  name: String!
   password: String!
 }
 
@@ -59,7 +52,6 @@ input NewUserConfig {
 }
 
 type Mutation {
-  createLink(input: NewLink!): Link!
   createNote(input: NewNote!): Note!
   createUser(input: NewUser!): String!
   login(input: Login!): String!
@@ -68,12 +60,10 @@ type Mutation {
 }
 
 type Query {
-  links: [Link!]!
   notes: [Note!]!
   userConfig: UserConfig!
 }
 
 type Subscription {
-  subscriptionLinkAdded: Link!
   SubscriptionNoteAdded: Note!
 }

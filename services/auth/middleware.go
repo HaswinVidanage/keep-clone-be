@@ -40,15 +40,15 @@ func (as AuthService) AuthMiddleware() func(http.Handler) http.Handler {
 
 			//validate jwt token
 			tokenStr := header
-			username, err := jwt.ParseToken(tokenStr)
+			name, err := jwt.ParseToken(tokenStr)
 			if err != nil {
 				http.Error(w, "Invalid token", http.StatusForbidden)
 				return
 			}
 
 			// create user and check if user exists in db
-			user := users.User{Username: username}
-			id, err := as.UserService.GetUserIdByUsername(r.Context(), username)
+			user := users.User{Name: name}
+			id, err := as.UserService.GetUserIdByName(r.Context(), name)
 			if err != nil {
 				next.ServeHTTP(w, r)
 				return

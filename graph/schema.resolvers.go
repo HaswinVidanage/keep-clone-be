@@ -10,38 +10,11 @@ import (
 	"hackernews-api/graph/model"
 	"hackernews-api/internal/pkg/jwt"
 	"hackernews-api/services/auth"
-	"hackernews-api/services/links"
 	"hackernews-api/services/note"
 	"hackernews-api/services/users"
 	"math/rand"
 	"strconv"
 )
-
-func (r *mutationResolver) CreateLink(ctx context.Context, input model.NewLink) (*model.Link, error) {
-	user := auth.ForContext(ctx)
-	if user == nil {
-		return &model.Link{}, fmt.Errorf("access denied")
-	}
-
-	var link links.Link
-	link.Title = input.Title
-	link.Address = input.Address
-	link.User = user
-	linkID := r.Resolver.ILinkService.Save(link)
-
-	newModel := &model.Link{
-		ID:      strconv.FormatInt(linkID, 10),
-		Title:   link.Title,
-		Address: link.Address,
-	}
-
-	//add new chanel in observer
-	for _, observer := range addLinkObserver {
-		observer <- newModel
-	}
-
-	return newModel, nil
-}
 
 func (r *mutationResolver) CreateNote(ctx context.Context, input model.NewNote) (*model.Note, error) {
 	user := auth.ForContext(ctx)
@@ -71,10 +44,10 @@ func (r *mutationResolver) CreateNote(ctx context.Context, input model.NewNote) 
 
 func (r *mutationResolver) CreateUser(ctx context.Context, input model.NewUser) (string, error) {
 	var user users.User
-	user.Username = input.Username
+	user.Name = input.Name
 	user.Password = input.Password
 	r.IUserService.Create(ctx, user)
-	token, err := jwt.GenerateToken(user.Username)
+	token, err := jwt.GenerateToken(user.Name)
 	if err != nil {
 		return "", err
 	}
@@ -83,14 +56,14 @@ func (r *mutationResolver) CreateUser(ctx context.Context, input model.NewUser) 
 
 func (r *mutationResolver) Login(ctx context.Context, input model.Login) (string, error) {
 	var user users.User
-	user.Username = input.Username
+	user.Name = input.Name
 	user.Password = input.Password
 	correct := r.IUserService.Authenticate(ctx, user)
 	if !correct {
 		// 1
 		return "", &users.WrongUsernameOrPasswordError{}
 	}
-	token, err := jwt.GenerateToken(user.Username)
+	token, err := jwt.GenerateToken(user.Name)
 	if err != nil {
 		return "", err
 	}
@@ -98,11 +71,12 @@ func (r *mutationResolver) Login(ctx context.Context, input model.Login) (string
 }
 
 func (r *mutationResolver) RefreshToken(ctx context.Context, input model.RefreshTokenInput) (string, error) {
-	username, err := jwt.ParseToken(input.Token)
+	// todo generate with email
+	name, err := jwt.ParseToken(input.Token)
 	if err != nil {
 		return "", fmt.Errorf("access denied")
 	}
-	token, err := jwt.GenerateToken(username)
+	token, err := jwt.GenerateToken(name)
 	if err != nil {
 		return "", err
 	}
@@ -114,20 +88,6 @@ func (r *mutationResolver) CreateUserConfig(ctx context.Context, input model.New
 	return int(configId), nil
 }
 
-func (r *queryResolver) Links(ctx context.Context) ([]*model.Link, error) {
-	var resultLinks []*model.Link
-	var dbLinks []links.Link
-	dbLinks = r.Resolver.ILinkService.GetAll()
-	for _, link := range dbLinks {
-		grahpqlUser := &model.User{
-			ID:   link.User.ID,
-			Name: link.User.Username,
-		}
-		resultLinks = append(resultLinks, &model.Link{ID: link.ID, Title: link.Title, Address: link.Address, User: grahpqlUser})
-	}
-	return resultLinks, nil
-}
-
 func (r *queryResolver) Notes(ctx context.Context) ([]*model.Note, error) {
 	var resultNotes []*model.Note
 	var dbNotes []note.Note
@@ -135,7 +95,7 @@ func (r *queryResolver) Notes(ctx context.Context) ([]*model.Note, error) {
 	for _, note := range dbNotes {
 		grahpqlUser := &model.User{
 			ID:   note.User.ID,
-			Name: note.User.Username,
+			Name: note.User.Name,
 		}
 		resultNotes = append(resultNotes, &model.Note{ID: note.ID, Title: note.Title, Content: note.Content, User: grahpqlUser})
 	}
@@ -155,25 +115,11 @@ func (r *queryResolver) UserConfig(ctx context.Context) (*model.UserConfig, erro
 		IsDarkMode: uc.IsDarkMode,
 		User: &model.User{
 			ID:   uc.User.ID,
-			Name: uc.User.Username,
+			Name: uc.User.Name,
 		},
 	}
 
 	return dbUC, nil
-}
-
-func (r *subscriptionResolver) SubscriptionLinkAdded(ctx context.Context) (<-chan *model.Link, error) {
-	id := randString(8)
-	fmt.Println("Random id: ", id)
-	events := make(chan *model.Link, 1)
-
-	go func() {
-		<-ctx.Done()
-		delete(addLinkObserver, id)
-	}()
-
-	addLinkObserver[id] = events
-	return events, nil
 }
 
 func (r *subscriptionResolver) SubscriptionNoteAdded(ctx context.Context) (<-chan *model.Note, error) {
@@ -209,11 +155,9 @@ type subscriptionResolver struct{ *Resolver }
 //  - When renaming or deleting a resolver the old code will be put in here. You can safely delete
 //    it when you're done.
 //  - You have helper methods in this file. Move them out to keep these resolver files clean.
-var addLinkObserver map[string]chan *model.Link
 var addNoteObserver map[string]chan *model.Note
 
 func init() {
-	addLinkObserver = map[string]chan *model.Link{}
 	addNoteObserver = map[string]chan *model.Note{}
 }
 
