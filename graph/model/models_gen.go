@@ -2,15 +2,8 @@
 
 package model
 
-type Link struct {
-	ID      string `json:"id"`
-	Title   string `json:"title"`
-	Address string `json:"address"`
-	User    *User  `json:"user"`
-}
-
 type Login struct {
-	Username string `json:"username"`
+	Name     string `json:"name"`
 	Password string `json:"password"`
 }
 
@@ -19,9 +12,27 @@ type NewLink struct {
 	Address string `json:"address"`
 }
 
+type NewNote struct {
+	Title   string `json:"title"`
+	Content string `json:"content"`
+}
+
 type NewUser struct {
-	Username string `json:"username"`
+	Name     string `json:"name"`
 	Password string `json:"password"`
+}
+
+type NewUserConfig struct {
+	IsDarkMode bool `json:"isDarkMode"`
+	IsListMode bool `json:"isListMode"`
+	FkUser     int  `json:"fkUser"`
+}
+
+type Note struct {
+	ID      string `json:"id"`
+	Title   string `json:"title"`
+	Content string `json:"content"`
+	User    *User  `json:"user"`
 }
 
 type RefreshTokenInput struct {
@@ -31,4 +42,11 @@ type RefreshTokenInput struct {
 type User struct {
 	ID   string `json:"id"`
 	Name string `json:"name"`
+}
+
+type UserConfig struct {
+	ID         string `json:"id"`
+	IsDarkMode bool   `json:"isDarkMode"`
+	IsListMode bool   `json:"isListMode"`
+	User       *User  `json:"user"`
 }

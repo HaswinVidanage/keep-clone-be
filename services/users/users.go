@@ -13,13 +13,13 @@ import (
 
 type IUserService interface {
 	Create(ctx context.Context, user User)
-	GetUserIdByUsername(ctx context.Context, username string) (int, error)
+	GetUserIdByName(ctx context.Context, name string) (int, error)
 	Authenticate(ctx context.Context, user User) bool
 }
 
 type User struct {
 	ID       string `json:"id"`
-	Username string `json:"name"`
+	Name     string `json:"name"`
 	Password string `json:"password"`
 }
 
@@ -32,25 +32,25 @@ var NewUserService = wire.NewSet(
 	wire.Bind(new(IUserService), new(*UserService)))
 
 func (us *UserService) Create(ctx context.Context, user User) {
-	statement, err := us.DbProvider.Db.Prepare("INSERT INTO Users(Username,Password) VALUES(?,?)")
+	statement, err := us.DbProvider.Db.Prepare("insert into user(name,password) values(?,?)")
 	print(statement)
 	if err != nil {
 		log.Fatal(err)
 	}
 	hashedPassword, err := HashPassword(user.Password)
-	_, err = statement.Exec(user.Username, hashedPassword)
+	_, err = statement.Exec(user.Name, hashedPassword)
 	if err != nil {
 		log.Fatal(err)
 	}
 }
 
 //GetUserIdByUsername check if a user exists in database by given username
-func (us *UserService) GetUserIdByUsername(ctx context.Context, username string) (int, error) {
-	statement, err := us.DbProvider.Db.Prepare("select ID from Users WHERE Username = ?")
+func (us *UserService) GetUserIdByName(ctx context.Context, name string) (int, error) {
+	statement, err := us.DbProvider.Db.Prepare("select id from user WHERE name = ?")
 	if err != nil {
 		log.Fatal(err)
 	}
-	row := statement.QueryRow(username)
+	row := statement.QueryRow(name)
 
 	var Id int
 	err = row.Scan(&Id)
@@ -65,11 +65,11 @@ func (us *UserService) GetUserIdByUsername(ctx context.Context, username string)
 }
 
 func (us *UserService) Authenticate(ctx context.Context, user User) bool {
-	statement, err := us.DbProvider.Db.Prepare("select Password from Users WHERE Username = ?")
+	statement, err := us.DbProvider.Db.Prepare("select password from user WHERE name = ?")
 	if err != nil {
 		log.Fatal(err)
 	}
-	row := statement.QueryRow(user.Username)
+	row := statement.QueryRow(user.Name)
 
 	var hashedPassword string
 	err = row.Scan(&hashedPassword)

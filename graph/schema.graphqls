@@ -2,10 +2,17 @@
 #
 # https://gqlgen.com/getting-started/
 
-type Link {
+type Note {
   id: ID!
   title: String!
-  address: String!
+  content: String!
+  user: User!
+}
+
+type UserConfig {
+  id: ID!
+  isDarkMode: Boolean!
+  isListMode: Boolean!
   user: User!
 }
 
@@ -19,31 +26,44 @@ input NewLink {
   address: String!
 }
 
+input NewNote {
+  title: String!
+  content: String!
+}
+
 input RefreshTokenInput{
   token: String!
 }
 
 input NewUser {
-  username: String!
+  name: String!
   password: String!
 }
 
 input Login {
-  username: String!
+  name: String!
   password: String!
 }
 
+input NewUserConfig {
+  isDarkMode: Boolean!
+  isListMode: Boolean!
+  fkUser: Int!
+}
+
 type Mutation {
-  createLink(input: NewLink!): Link!
+  createNote(input: NewNote!): Note!
   createUser(input: NewUser!): String!
   login(input: Login!): String!
   refreshToken(input: RefreshTokenInput!): String!
+  createUserConfig(input: NewUserConfig!): Int!
 }
 
 type Query {
-  links: [Link!]!
+  notes: [Note!]!
+  userConfig: UserConfig!
 }
 
 type Subscription {
-  subscriptionLinkAdded: Link!
+  SubscriptionNoteAdded: Note!
 }

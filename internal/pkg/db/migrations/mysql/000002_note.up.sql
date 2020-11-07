@@ -1,0 +1,8 @@
+CREATE TABLE IF NOT EXISTS note(
+  id INT NOT NULL UNIQUE AUTO_INCREMENT,
+  title VARCHAR (255) ,
+  content VARCHAR (255) ,
+  fk_user INT,
+  FOREIGN KEY (fk_user) REFERENCES user(id) ,
+  PRIMARY KEY (id)
+)
