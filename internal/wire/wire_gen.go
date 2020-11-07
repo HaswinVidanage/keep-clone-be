@@ -7,6 +7,7 @@ package wire
 
 import (
 	"github.com/google/wire"
+	"hackernews-api/graph"
 	"hackernews-api/internal/config"
 	"hackernews-api/internal/pkg/db/migrations/mysql"
 	"hackernews-api/services/auth"
@@ -26,21 +27,17 @@ func GetApp() (*App, error) {
 	noteService := &note.NoteService{
 		DbProvider: dbProvider,
 	}
-	usersUserService := users.UserService{
-		DbProvider: dbProvider,
-	}
-	authService := &auth.AuthService{
-		UserService: usersUserService,
-	}
 	userConfigService := &user_config.UserConfigService{
 		DbProvider: dbProvider,
 	}
+	resolver := &graph.Resolver{
+		IUserService:       userService,
+		INoteService:       noteService,
+		IUserConfigService: userConfigService,
+	}
 	app := &App{
-		DbProvider:        dbProvider,
-		UserService:       userService,
-		NoteService:       noteService,
-		NewAuthService:    authService,
-		UserConfigService: userConfigService,
+		Resolver:   resolver,
+		DbProvider: dbProvider,
 	}
 	return app, nil
 }
@@ -48,11 +45,8 @@ func GetApp() (*App, error) {
 // wire.go:
 
 type App struct {
-	DbProvider        *database.DbProvider
-	UserService       *users.UserService
-	NoteService       *note.NoteService
-	NewAuthService    *auth.AuthService
-	UserConfigService *user_config.UserConfigService
+	Resolver   *graph.Resolver
+	DbProvider *database.DbProvider
 }
 
 var dbSet = wire.NewSet(database.InitDB, wire.Bind(new(database.IDbProvider), new(*database.DbProvider)))

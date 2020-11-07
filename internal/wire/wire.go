@@ -4,6 +4,7 @@ package wire
 
 import (
 	"github.com/google/wire"
+	"hackernews-api/graph"
 	"hackernews-api/internal/config"
 	"hackernews-api/internal/pkg/db/migrations/mysql"
 	"hackernews-api/services/auth"
@@ -13,11 +14,12 @@ import (
 )
 
 type App struct {
-	DbProvider        *database.DbProvider
-	UserService       *users.UserService
-	NoteService       *note.NoteService
-	NewAuthService    *auth.AuthService
-	UserConfigService *user_config.UserConfigService
+	Resolver   *graph.Resolver
+	DbProvider *database.DbProvider
+	//UserService       *users.UserService
+	//NoteService       *note.NoteService
+	//NewAuthService    *auth.AuthService
+	//UserConfigService *user_config.UserConfigService
 }
 
 var dbSet = wire.NewSet(
@@ -42,6 +44,7 @@ func GetApp() (*App, error) {
 		configSet,
 		dbSet,
 		serviceSet,
+		wire.Struct(new(graph.Resolver), "*"),
 		wire.Struct(new(App), "*"),
 	))
 

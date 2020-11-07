@@ -1,7 +1,6 @@
 package main
 
 import (
-	"hackernews-api/graph"
 	"hackernews-api/graph/generated"
 	"hackernews-api/internal/wire"
 	"log"
@@ -38,11 +37,7 @@ func main() {
 
 	App.DbProvider.Migrate()
 
-	server := handler.NewDefaultServer(generated.NewExecutableSchema(generated.Config{Resolvers: &graph.Resolver{
-		IUserService:       App.UserService,
-		INoteService:       App.NoteService,
-		IUserConfigService: App.UserConfigService,
-	}}))
+	server := handler.NewDefaultServer(generated.NewExecutableSchema(generated.Config{Resolvers: App.Resolver}))
 
 	router.Handle("/", playground.Handler("GraphQL playground", "/query"))
 	router.Handle("/query", server)
