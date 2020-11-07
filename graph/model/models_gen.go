@@ -29,6 +29,12 @@ type NewUser struct {
 	Password string `json:"password"`
 }
 
+type NewUserConfig struct {
+	IsDarkMode bool `json:"isDarkMode"`
+	IsListMode bool `json:"isListMode"`
+	FkUser     int  `json:"fkUser"`
+}
+
 type Note struct {
 	ID      string `json:"id"`
 	Title   string `json:"title"`
@@ -43,4 +49,11 @@ type RefreshTokenInput struct {
 type User struct {
 	ID   string `json:"id"`
 	Name string `json:"name"`
+}
+
+type UserConfig struct {
+	ID         string `json:"id"`
+	IsDarkMode bool   `json:"isDarkMode"`
+	IsListMode bool   `json:"isListMode"`
+	User       *User  `json:"user"`
 }

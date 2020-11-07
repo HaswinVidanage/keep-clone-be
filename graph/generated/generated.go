@@ -53,11 +53,12 @@ type ComplexityRoot struct {
 	}
 
 	Mutation struct {
-		CreateLink   func(childComplexity int, input model.NewLink) int
-		CreateNote   func(childComplexity int, input model.NewNote) int
-		CreateUser   func(childComplexity int, input model.NewUser) int
-		Login        func(childComplexity int, input model.Login) int
-		RefreshToken func(childComplexity int, input model.RefreshTokenInput) int
+		CreateLink       func(childComplexity int, input model.NewLink) int
+		CreateNote       func(childComplexity int, input model.NewNote) int
+		CreateUser       func(childComplexity int, input model.NewUser) int
+		CreateUserConfig func(childComplexity int, input model.NewUserConfig) int
+		Login            func(childComplexity int, input model.Login) int
+		RefreshToken     func(childComplexity int, input model.RefreshTokenInput) int
 	}
 
 	Note struct {
@@ -68,8 +69,9 @@ type ComplexityRoot struct {
 	}
 
 	Query struct {
-		Links func(childComplexity int) int
-		Notes func(childComplexity int) int
+		Links      func(childComplexity int) int
+		Notes      func(childComplexity int) int
+		UserConfig func(childComplexity int) int
 	}
 
 	Subscription struct {
@@ -81,6 +83,13 @@ type ComplexityRoot struct {
 		ID   func(childComplexity int) int
 		Name func(childComplexity int) int
 	}
+
+	UserConfig struct {
+		ID         func(childComplexity int) int
+		IsDarkMode func(childComplexity int) int
+		IsListMode func(childComplexity int) int
+		User       func(childComplexity int) int
+	}
 }
 
 type MutationResolver interface {
@@ -89,10 +98,12 @@ type MutationResolver interface {
 	CreateUser(ctx context.Context, input model.NewUser) (string, error)
 	Login(ctx context.Context, input model.Login) (string, error)
 	RefreshToken(ctx context.Context, input model.RefreshTokenInput) (string, error)
+	CreateUserConfig(ctx context.Context, input model.NewUserConfig) (int, error)
 }
 type QueryResolver interface {
 	Links(ctx context.Context) ([]*model.Link, error)
 	Notes(ctx context.Context) ([]*model.Note, error)
+	UserConfig(ctx context.Context) (*model.UserConfig, error)
 }
 type SubscriptionResolver interface {
 	SubscriptionLinkAdded(ctx context.Context) (<-chan *model.Link, error)
@@ -178,6 +189,18 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Mutation.CreateUser(childComplexity, args["input"].(model.NewUser)), true
 
+	case "Mutation.createUserConfig":
+		if e.complexity.Mutation.CreateUserConfig == nil {
+			break
+		}
+
+		args, err := ec.field_Mutation_createUserConfig_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Mutation.CreateUserConfig(childComplexity, args["input"].(model.NewUserConfig)), true
+
 	case "Mutation.login":
 		if e.complexity.Mutation.Login == nil {
 			break
@@ -244,6 +267,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Query.Notes(childComplexity), true
 
+	case "Query.userConfig":
+		if e.complexity.Query.UserConfig == nil {
+			break
+		}
+
+		return e.complexity.Query.UserConfig(childComplexity), true
+
 	case "Subscription.subscriptionLinkAdded":
 		if e.complexity.Subscription.SubscriptionLinkAdded == nil {
 			break
@@ -271,6 +301,34 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.User.Name(childComplexity), true
+
+	case "UserConfig.id":
+		if e.complexity.UserConfig.ID == nil {
+			break
+		}
+
+		return e.complexity.UserConfig.ID(childComplexity), true
+
+	case "UserConfig.isDarkMode":
+		if e.complexity.UserConfig.IsDarkMode == nil {
+			break
+		}
+
+		return e.complexity.UserConfig.IsDarkMode(childComplexity), true
+
+	case "UserConfig.isListMode":
+		if e.complexity.UserConfig.IsListMode == nil {
+			break
+		}
+
+		return e.complexity.UserConfig.IsListMode(childComplexity), true
+
+	case "UserConfig.user":
+		if e.complexity.UserConfig.User == nil {
+			break
+		}
+
+		return e.complexity.UserConfig.User(childComplexity), true
 
 	}
 	return 0, false
@@ -371,6 +429,13 @@ type Note {
   user: User!
 }
 
+type UserConfig {
+  id: ID!
+  isDarkMode: Boolean!
+  isListMode: Boolean!
+  user: User!
+}
+
 type User {
   id: ID!
   name: String!
@@ -400,17 +465,25 @@ input Login {
   password: String!
 }
 
+input NewUserConfig {
+  isDarkMode: Boolean!
+  isListMode: Boolean!
+  fkUser: Int!
+}
+
 type Mutation {
   createLink(input: NewLink!): Link!
   createNote(input: NewNote!): Note!
   createUser(input: NewUser!): String!
   login(input: Login!): String!
   refreshToken(input: RefreshTokenInput!): String!
+  createUserConfig(input: NewUserConfig!): Int!
 }
 
 type Query {
   links: [Link!]!
   notes: [Note!]!
+  userConfig: UserConfig!
 }
 
 type Subscription {
@@ -446,6 +519,21 @@ func (ec *executionContext) field_Mutation_createNote_args(ctx context.Context, 
 	if tmp, ok := rawArgs["input"]; ok {
 		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("input"))
 		arg0, err = ec.unmarshalNNewNote2hackernewsᚑapiᚋgraphᚋmodelᚐNewNote(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["input"] = arg0
+	return args, nil
+}
+
+func (ec *executionContext) field_Mutation_createUserConfig_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 model.NewUserConfig
+	if tmp, ok := rawArgs["input"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("input"))
+		arg0, err = ec.unmarshalNNewUserConfig2hackernewsᚑapiᚋgraphᚋmodelᚐNewUserConfig(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
@@ -902,6 +990,48 @@ func (ec *executionContext) _Mutation_refreshToken(ctx context.Context, field gr
 	return ec.marshalNString2string(ctx, field.Selections, res)
 }
 
+func (ec *executionContext) _Mutation_createUserConfig(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "Mutation",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   true,
+		IsResolver: true,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	rawArgs := field.ArgumentMap(ec.Variables)
+	args, err := ec.field_Mutation_createUserConfig_args(ctx, rawArgs)
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	fc.Args = args
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Mutation().CreateUserConfig(rctx, args["input"].(model.NewUserConfig))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(int)
+	fc.Result = res
+	return ec.marshalNInt2int(ctx, field.Selections, res)
+}
+
 func (ec *executionContext) _Note_id(ctx context.Context, field graphql.CollectedField, obj *model.Note) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
@@ -1110,6 +1240,41 @@ func (ec *executionContext) _Query_notes(ctx context.Context, field graphql.Coll
 	res := resTmp.([]*model.Note)
 	fc.Result = res
 	return ec.marshalNNote2ᚕᚖhackernewsᚑapiᚋgraphᚋmodelᚐNoteᚄ(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _Query_userConfig(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "Query",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   true,
+		IsResolver: true,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Query().UserConfig(rctx)
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(*model.UserConfig)
+	fc.Result = res
+	return ec.marshalNUserConfig2ᚖhackernewsᚑapiᚋgraphᚋmodelᚐUserConfig(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Query___type(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
@@ -1341,6 +1506,146 @@ func (ec *executionContext) _User_name(ctx context.Context, field graphql.Collec
 	res := resTmp.(string)
 	fc.Result = res
 	return ec.marshalNString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _UserConfig_id(ctx context.Context, field graphql.CollectedField, obj *model.UserConfig) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "UserConfig",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.ID, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNID2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _UserConfig_isDarkMode(ctx context.Context, field graphql.CollectedField, obj *model.UserConfig) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "UserConfig",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.IsDarkMode, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(bool)
+	fc.Result = res
+	return ec.marshalNBoolean2bool(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _UserConfig_isListMode(ctx context.Context, field graphql.CollectedField, obj *model.UserConfig) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "UserConfig",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.IsListMode, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(bool)
+	fc.Result = res
+	return ec.marshalNBoolean2bool(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _UserConfig_user(ctx context.Context, field graphql.CollectedField, obj *model.UserConfig) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "UserConfig",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.User, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(*model.User)
+	fc.Result = res
+	return ec.marshalNUser2ᚖhackernewsᚑapiᚋgraphᚋmodelᚐUser(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) ___Directive_name(ctx context.Context, field graphql.CollectedField, obj *introspection.Directive) (ret graphql.Marshaler) {
@@ -2542,6 +2847,42 @@ func (ec *executionContext) unmarshalInputNewUser(ctx context.Context, obj inter
 	return it, nil
 }
 
+func (ec *executionContext) unmarshalInputNewUserConfig(ctx context.Context, obj interface{}) (model.NewUserConfig, error) {
+	var it model.NewUserConfig
+	var asMap = obj.(map[string]interface{})
+
+	for k, v := range asMap {
+		switch k {
+		case "isDarkMode":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("isDarkMode"))
+			it.IsDarkMode, err = ec.unmarshalNBoolean2bool(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "isListMode":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("isListMode"))
+			it.IsListMode, err = ec.unmarshalNBoolean2bool(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "fkUser":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("fkUser"))
+			it.FkUser, err = ec.unmarshalNInt2int(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		}
+	}
+
+	return it, nil
+}
+
 func (ec *executionContext) unmarshalInputRefreshTokenInput(ctx context.Context, obj interface{}) (model.RefreshTokenInput, error) {
 	var it model.RefreshTokenInput
 	var asMap = obj.(map[string]interface{})
@@ -2652,6 +2993,11 @@ func (ec *executionContext) _Mutation(ctx context.Context, sel ast.SelectionSet)
 			if out.Values[i] == graphql.Null {
 				invalids++
 			}
+		case "createUserConfig":
+			out.Values[i] = ec._Mutation_createUserConfig(ctx, field)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}
@@ -2748,6 +3094,20 @@ func (ec *executionContext) _Query(ctx context.Context, sel ast.SelectionSet) gr
 				}
 				return res
 			})
+		case "userConfig":
+			field := field
+			out.Concurrently(i, func() (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Query_userConfig(ctx, field)
+				if res == graphql.Null {
+					atomic.AddUint32(&invalids, 1)
+				}
+				return res
+			})
 		case "__type":
 			out.Values[i] = ec._Query___type(ctx, field)
 		case "__schema":
@@ -2803,6 +3163,48 @@ func (ec *executionContext) _User(ctx context.Context, sel ast.SelectionSet, obj
 			}
 		case "name":
 			out.Values[i] = ec._User_name(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch()
+	if invalids > 0 {
+		return graphql.Null
+	}
+	return out
+}
+
+var userConfigImplementors = []string{"UserConfig"}
+
+func (ec *executionContext) _UserConfig(ctx context.Context, sel ast.SelectionSet, obj *model.UserConfig) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, userConfigImplementors)
+
+	out := graphql.NewFieldSet(fields)
+	var invalids uint32
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("UserConfig")
+		case "id":
+			out.Values[i] = ec._UserConfig_id(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "isDarkMode":
+			out.Values[i] = ec._UserConfig_isDarkMode(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "isListMode":
+			out.Values[i] = ec._UserConfig_isListMode(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "user":
+			out.Values[i] = ec._UserConfig_user(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
 				invalids++
 			}
@@ -3092,6 +3494,21 @@ func (ec *executionContext) marshalNID2string(ctx context.Context, sel ast.Selec
 	return res
 }
 
+func (ec *executionContext) unmarshalNInt2int(ctx context.Context, v interface{}) (int, error) {
+	res, err := graphql.UnmarshalInt(v)
+	return res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) marshalNInt2int(ctx context.Context, sel ast.SelectionSet, v int) graphql.Marshaler {
+	res := graphql.MarshalInt(v)
+	if res == graphql.Null {
+		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
+			ec.Errorf(ctx, "must not be null")
+		}
+	}
+	return res
+}
+
 func (ec *executionContext) marshalNLink2hackernewsᚑapiᚋgraphᚋmodelᚐLink(ctx context.Context, sel ast.SelectionSet, v model.Link) graphql.Marshaler {
 	return ec._Link(ctx, sel, &v)
 }
@@ -3160,6 +3577,11 @@ func (ec *executionContext) unmarshalNNewNote2hackernewsᚑapiᚋgraphᚋmodel�
 
 func (ec *executionContext) unmarshalNNewUser2hackernewsᚑapiᚋgraphᚋmodelᚐNewUser(ctx context.Context, v interface{}) (model.NewUser, error) {
 	res, err := ec.unmarshalInputNewUser(ctx, v)
+	return res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) unmarshalNNewUserConfig2hackernewsᚑapiᚋgraphᚋmodelᚐNewUserConfig(ctx context.Context, v interface{}) (model.NewUserConfig, error) {
+	res, err := ec.unmarshalInputNewUserConfig(ctx, v)
 	return res, graphql.ErrorOnPath(ctx, err)
 }
 
@@ -3242,6 +3664,20 @@ func (ec *executionContext) marshalNUser2ᚖhackernewsᚑapiᚋgraphᚋmodelᚐU
 		return graphql.Null
 	}
 	return ec._User(ctx, sel, v)
+}
+
+func (ec *executionContext) marshalNUserConfig2hackernewsᚑapiᚋgraphᚋmodelᚐUserConfig(ctx context.Context, sel ast.SelectionSet, v model.UserConfig) graphql.Marshaler {
+	return ec._UserConfig(ctx, sel, &v)
+}
+
+func (ec *executionContext) marshalNUserConfig2ᚖhackernewsᚑapiᚋgraphᚋmodelᚐUserConfig(ctx context.Context, sel ast.SelectionSet, v *model.UserConfig) graphql.Marshaler {
+	if v == nil {
+		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	return ec._UserConfig(ctx, sel, v)
 }
 
 func (ec *executionContext) marshalN__Directive2githubᚗcomᚋ99designsᚋgqlgenᚋgraphqlᚋintrospectionᚐDirective(ctx context.Context, sel ast.SelectionSet, v introspection.Directive) graphql.Marshaler {

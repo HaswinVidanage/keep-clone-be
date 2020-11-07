@@ -39,9 +39,10 @@ func main() {
 	App.DbProvider.Migrate()
 
 	server := handler.NewDefaultServer(generated.NewExecutableSchema(generated.Config{Resolvers: &graph.Resolver{
-		IUserService: App.UserService,
-		ILinkService: App.LinkService,
-		INoteService: App.NoteService,
+		IUserService:       App.UserService,
+		ILinkService:       App.LinkService,
+		INoteService:       App.NoteService,
+		IUserConfigService: App.UserConfigService,
 	}}))
 
 	router.Handle("/", playground.Handler("GraphQL playground", "/query"))

@@ -16,6 +16,13 @@ type Note {
   user: User!
 }
 
+type UserConfig {
+  id: ID!
+  isDarkMode: Boolean!
+  isListMode: Boolean!
+  user: User!
+}
+
 type User {
   id: ID!
   name: String!
@@ -45,17 +52,25 @@ input Login {
   password: String!
 }
 
+input NewUserConfig {
+  isDarkMode: Boolean!
+  isListMode: Boolean!
+  fkUser: Int!
+}
+
 type Mutation {
   createLink(input: NewLink!): Link!
   createNote(input: NewNote!): Note!
   createUser(input: NewUser!): String!
   login(input: Login!): String!
   refreshToken(input: RefreshTokenInput!): String!
+  createUserConfig(input: NewUserConfig!): Int!
 }
 
 type Query {
   links: [Link!]!
   notes: [Note!]!
+  userConfig: UserConfig!
 }
 
 type Subscription {

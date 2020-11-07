@@ -12,6 +12,7 @@ import (
 	"hackernews-api/services/auth"
 	"hackernews-api/services/links"
 	"hackernews-api/services/note"
+	"hackernews-api/services/user_config"
 	"hackernews-api/services/users"
 )
 
@@ -35,12 +36,16 @@ func GetApp() (*App, error) {
 	authService := &auth.AuthService{
 		UserService: usersUserService,
 	}
+	userConfigService := &user_config.UserConfigService{
+		DbProvider: dbProvider,
+	}
 	app := &App{
-		DbProvider:     dbProvider,
-		UserService:    userService,
-		LinkService:    linkService,
-		NoteService:    noteService,
-		NewAuthService: authService,
+		DbProvider:        dbProvider,
+		UserService:       userService,
+		LinkService:       linkService,
+		NoteService:       noteService,
+		NewAuthService:    authService,
+		UserConfigService: userConfigService,
 	}
 	return app, nil
 }
@@ -48,15 +53,16 @@ func GetApp() (*App, error) {
 // wire.go:
 
 type App struct {
-	DbProvider     *database.DbProvider
-	UserService    *users.UserService
-	LinkService    *links.LinkService
-	NoteService    *note.NoteService
-	NewAuthService *auth.AuthService
+	DbProvider        *database.DbProvider
+	UserService       *users.UserService
+	LinkService       *links.LinkService
+	NoteService       *note.NoteService
+	NewAuthService    *auth.AuthService
+	UserConfigService *user_config.UserConfigService
 }
 
 var dbSet = wire.NewSet(database.InitDB, wire.Bind(new(database.IDbProvider), new(*database.DbProvider)))
 
 var configSet = wire.NewSet(config.GetCfg, wire.Bind(new(database.IDbConfig), new(*config.Config)))
 
-var serviceSet = wire.NewSet(users.NewUserService, links.NewLinkService, auth.NewAuthService, note.NewNoteService)
+var serviceSet = wire.NewSet(users.NewUserService, links.NewLinkService, auth.NewAuthService, note.NewNoteService, user_config.NewUserConfigService)

@@ -109,6 +109,11 @@ func (r *mutationResolver) RefreshToken(ctx context.Context, input model.Refresh
 	return token, nil
 }
 
+func (r *mutationResolver) CreateUserConfig(ctx context.Context, input model.NewUserConfig) (int, error) {
+	configId := r.Resolver.IUserConfigService.Save(ctx, input.IsDarkMode, input.IsListMode, input.FkUser)
+	return int(configId), nil
+}
+
 func (r *queryResolver) Links(ctx context.Context) ([]*model.Link, error) {
 	var resultLinks []*model.Link
 	var dbLinks []links.Link
@@ -135,6 +140,26 @@ func (r *queryResolver) Notes(ctx context.Context) ([]*model.Note, error) {
 		resultNotes = append(resultNotes, &model.Note{ID: note.ID, Title: note.Title, Content: note.Content, User: grahpqlUser})
 	}
 	return resultNotes, nil
+}
+
+func (r *queryResolver) UserConfig(ctx context.Context) (*model.UserConfig, error) {
+	uc := r.Resolver.IUserConfigService.GetConfig(ctx)
+
+	if uc == nil {
+		return &model.UserConfig{}, nil
+	}
+
+	dbUC := &model.UserConfig{
+		ID:         uc.ID,
+		IsListMode: uc.IsListMode,
+		IsDarkMode: uc.IsDarkMode,
+		User: &model.User{
+			ID:   uc.User.ID,
+			Name: uc.User.Username,
+		},
+	}
+
+	return dbUC, nil
 }
 
 func (r *subscriptionResolver) SubscriptionLinkAdded(ctx context.Context) (<-chan *model.Link, error) {
