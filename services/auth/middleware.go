@@ -30,36 +30,39 @@ var NewAuthService = wire.NewSet(
 func (as AuthService) AuthMiddleware() func(http.Handler) http.Handler {
 	return func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+
 			header := r.Header.Get("Authorization")
 
-			// Allow unauthenticated users in
 			if header == "" {
 				next.ServeHTTP(w, r)
 				return
-			}
+			} else {
 
-			//validate jwt token
-			tokenStr := header
-			name, err := jwt.ParseToken(tokenStr)
-			if err != nil {
-				http.Error(w, "Invalid token", http.StatusForbidden)
-				return
-			}
+				//validate jwt token
+				tokenStr := header
+				name, err := jwt.ParseToken(tokenStr)
+				if err != nil {
+					next.ServeHTTP(w, r)
+					return
+				}
 
-			// create user and check if user exists in db
-			user := users.User{Name: name}
-			id, err := as.UserService.GetUserIdByName(r.Context(), name)
-			if err != nil {
+				// create user and check if user exists in db
+				user := users.User{Name: name}
+				id, err := as.UserService.GetUserIdByName(r.Context(), name)
+				if err != nil {
+					// token parsing failed, nevertheless we allow routing
+					next.ServeHTTP(w, r)
+					return
+				}
+				user.ID = strconv.Itoa(id)
+				// put it in context
+				ctx := context.WithValue(r.Context(), userCtxKey, &user)
+
+				// and call the next with our new context
+				r = r.WithContext(ctx)
 				next.ServeHTTP(w, r)
-				return
 			}
-			user.ID = strconv.Itoa(id)
-			// put it in context
-			ctx := context.WithValue(r.Context(), userCtxKey, &user)
 
-			// and call the next with our new context
-			r = r.WithContext(ctx)
-			next.ServeHTTP(w, r)
 		})
 	}
 }

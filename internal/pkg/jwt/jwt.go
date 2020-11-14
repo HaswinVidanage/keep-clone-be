@@ -1,6 +1,7 @@
 package jwt
 
 import (
+	"errors"
 	"github.com/dgrijalva/jwt-go"
 	"log"
 	"time"
@@ -27,15 +28,29 @@ func GenerateToken(name string) (string, error) {
 	return tokenString, nil
 }
 
+var mySigningKey = []byte("test")
+
 // ParseToken parses a jwt token and returns the username in it's claims
 func ParseToken(tokenStr string) (string, error) {
 	token, err := jwt.Parse(tokenStr, func(token *jwt.Token) (interface{}, error) {
-		return SecretKey, nil
+		//return SecretKey, nil
+		if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
+			return nil, errors.New("error getting token")
+		}
+
+		// todo get secret from config
+		//jwtSecret, err := ts.SecretsConfig.GetJwtSecret()
+		//return []byte(jwtSecret), err
+		return mySigningKey, nil
 	})
-	if claims, ok := token.Claims.(jwt.MapClaims); ok && token.Valid {
-		name := claims["name"].(string)
-		return name, nil
-	} else {
-		return "", err
+
+	if token != nil && token.Valid {
+		if claims, ok := token.Claims.(jwt.MapClaims); ok {
+			name := claims["name"].(string)
+			return name, nil
+		}
+		return "", errors.New("claim failed")
 	}
+
+	return "", err
 }
