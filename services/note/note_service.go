@@ -2,8 +2,8 @@ package note
 
 import (
 	"github.com/google/wire"
+	"hackernews-api/entities"
 	"hackernews-api/internal/pkg/db/migrations/mysql"
-	"hackernews-api/services/users"
 	"log"
 )
 
@@ -11,7 +11,7 @@ type Note struct {
 	ID      string
 	Title   string
 	Content string
-	User    *users.User
+	User    *entities.User
 }
 
 type INoteService interface {
@@ -70,7 +70,7 @@ func (ns NoteService) GetAll() []Note {
 		if err != nil {
 			log.Fatal(err)
 		}
-		note.User = &users.User{
+		note.User = &entities.User{
 			ID:   id,
 			Name: name,
 		}

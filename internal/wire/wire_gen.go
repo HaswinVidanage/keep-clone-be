@@ -9,6 +9,7 @@ import (
 	"github.com/google/wire"
 	"hackernews-api/internal/config"
 	"hackernews-api/internal/pkg/db/migrations/mysql"
+	"hackernews-api/repositories"
 	"hackernews-api/services/auth"
 	"hackernews-api/services/note"
 	"hackernews-api/services/user_config"
@@ -20,17 +21,20 @@ import (
 func GetApp() (*App, error) {
 	configConfig := config.GetCfg()
 	dbProvider := database.InitDB(configConfig)
-	userService := &users.UserService{
-		DbProvider: dbProvider,
-	}
-	noteService := &note.NoteService{
-		DbProvider: dbProvider,
-	}
-	usersUserService := users.UserService{
+	userRepository := &repositories.UserRepository{
 		DbProvider: dbProvider,
 	}
 	authService := &auth.AuthService{
-		UserService: usersUserService,
+		DbProvider:     dbProvider,
+		UserRepository: userRepository,
+	}
+	userService := &users.UserService{
+		DbProvider:     dbProvider,
+		UserRepository: userRepository,
+		AuthService:    authService,
+	}
+	noteService := &note.NoteService{
+		DbProvider: dbProvider,
 	}
 	userConfigService := &user_config.UserConfigService{
 		DbProvider: dbProvider,
@@ -58,5 +62,7 @@ type App struct {
 var dbSet = wire.NewSet(database.InitDB, wire.Bind(new(database.IDbProvider), new(*database.DbProvider)))
 
 var configSet = wire.NewSet(config.GetCfg, wire.Bind(new(database.IDbConfig), new(*config.Config)))
+
+var repositorySet = wire.NewSet(repositories.NewUserRepository)
 
 var serviceSet = wire.NewSet(users.NewUserService, auth.NewAuthService, note.NewNoteService, user_config.NewUserConfigService)

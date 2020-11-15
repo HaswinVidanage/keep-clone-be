@@ -6,6 +6,7 @@ package graph
 import (
 	"context"
 	"fmt"
+	"hackernews-api/entities"
 	"hackernews-api/graph/generated"
 	"hackernews-api/graph/model"
 	"hackernews-api/internal/pkg/jwt"
@@ -43,7 +44,7 @@ func (r *mutationResolver) CreateNote(ctx context.Context, input model.NewNote) 
 }
 
 func (r *mutationResolver) CreateUser(ctx context.Context, input model.NewUser) (string, error) {
-	var user users.User
+	var user entities.User
 	user.Name = input.Name
 	user.Password = input.Password
 	r.IUserService.Create(ctx, user)
@@ -55,10 +56,10 @@ func (r *mutationResolver) CreateUser(ctx context.Context, input model.NewUser) 
 }
 
 func (r *mutationResolver) Login(ctx context.Context, input model.Login) (string, error) {
-	var user users.User
+	var user entities.User
 	user.Name = input.Name
 	user.Password = input.Password
-	correct := r.IUserService.Authenticate(ctx, user)
+	correct := r.IAuthService.Authenticate(ctx, user)
 	if !correct {
 		// 1
 		return "", &users.WrongUsernameOrPasswordError{}

@@ -49,6 +49,7 @@ func main() {
 		IUserService:       App.UserService,
 		INoteService:       App.NoteService,
 		IUserConfigService: App.UserConfigService,
+		IAuthService:       App.NewAuthService,
 	}}))
 
 	router.Handle("/", playground.Handler("GraphQL playground", "/query"))
