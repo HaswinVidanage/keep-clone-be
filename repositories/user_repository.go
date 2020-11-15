@@ -12,7 +12,7 @@ import (
 
 type IUserRepository interface {
 	InsertUser(context.Context, entities.User) (int64, error)
-	GetUserIdByName(context.Context, string) (int, error)
+	GetUserIdByEmail(context.Context, string) (int, error)
 }
 
 type UserRepository struct {
@@ -24,31 +24,34 @@ var NewUserRepository = wire.NewSet(
 	wire.Bind(new(IUserRepository), new(*UserRepository)))
 
 func (ur *UserRepository) InsertUser(ctx context.Context, user entities.User) (int64, error) {
-	statement, err := ur.DbProvider.Db.Prepare("insert into user(name,password) values(?,?)")
+	statement, err := ur.DbProvider.Db.Prepare("insert into user( name, email, password) values(?,?,?)")
 	print(statement)
 	if err != nil {
-		log.Fatal(err)
+		logrus.WithError(err).Warn(err)
+		return 0, err
 	}
 
-	result, err := statement.Exec(user.Name, user.Password)
+	result, err := statement.Exec(user.Name, user.Email, user.Password)
 	if err != nil {
-		logrus.WithError(err).Fatal(err)
+		logrus.WithError(err).Warn(err)
+		return 0, err
 	}
 
 	lastId, err := result.LastInsertId()
 	if err != nil {
-		logrus.WithError(err).Fatal(err)
+		logrus.WithError(err).Warn(err)
+		return 0, err
 	}
 
 	return lastId, nil
 }
 
-func (ur *UserRepository) GetUserIdByName(ctx context.Context, name string) (int, error) {
-	statement, err := ur.DbProvider.Db.Prepare("select id from user WHERE name = ?")
+func (ur *UserRepository) GetUserIdByEmail(ctx context.Context, email string) (int, error) {
+	statement, err := ur.DbProvider.Db.Prepare("select id from user WHERE email = ?")
 	if err != nil {
 		log.Fatal(err)
 	}
-	row := statement.QueryRow(name)
+	row := statement.QueryRow(email)
 
 	var Id int
 	err = row.Scan(&Id)

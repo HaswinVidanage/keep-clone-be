@@ -9,10 +9,8 @@ import (
 	"hackernews-api/entities"
 	"hackernews-api/graph/generated"
 	"hackernews-api/graph/model"
-	"hackernews-api/internal/pkg/jwt"
 	"hackernews-api/services/auth"
 	"hackernews-api/services/note"
-	"hackernews-api/services/users"
 	"math/rand"
 	"strconv"
 )
@@ -33,6 +31,12 @@ func (r *mutationResolver) CreateNote(ctx context.Context, input model.NewNote) 
 		ID:      strconv.FormatInt(noteID, 10),
 		Title:   note.Title,
 		Content: note.Content,
+		// TODO move to service and get user by id
+		User: &model.User{
+			ID:    user.ID,
+			Email: user.Email,
+			Name:  user.Name,
+		},
 	}
 
 	//add new chanel in observer
@@ -44,27 +48,20 @@ func (r *mutationResolver) CreateNote(ctx context.Context, input model.NewNote) 
 }
 
 func (r *mutationResolver) CreateUser(ctx context.Context, input model.NewUser) (string, error) {
-	var user entities.User
-	user.Name = input.Name
-	user.Password = input.Password
-	r.IUserService.Create(ctx, user)
-	token, err := jwt.GenerateToken(user.Name)
+	token, err := r.IUserService.CreateUser(ctx, entities.User{
+		Name:     input.Name,
+		Email:    input.Email,
+		Password: input.Password,
+	})
 	if err != nil {
 		return "", err
 	}
+
 	return token, nil
 }
 
 func (r *mutationResolver) Login(ctx context.Context, input model.Login) (string, error) {
-	var user entities.User
-	user.Name = input.Name
-	user.Password = input.Password
-	correct := r.IAuthService.Authenticate(ctx, user)
-	if !correct {
-		// 1
-		return "", &users.WrongUsernameOrPasswordError{}
-	}
-	token, err := jwt.GenerateToken(user.Name)
+	token, err := r.IAuthService.Login(ctx, input.Email, input.Password)
 	if err != nil {
 		return "", err
 	}
@@ -72,14 +69,9 @@ func (r *mutationResolver) Login(ctx context.Context, input model.Login) (string
 }
 
 func (r *mutationResolver) RefreshToken(ctx context.Context, input model.RefreshTokenInput) (string, error) {
-	// todo generate with email
-	name, err := jwt.ParseToken(input.Token)
+	token, err := r.IAuthService.RefreshToken(ctx, input.Token)
 	if err != nil {
 		return "", fmt.Errorf("access denied")
-	}
-	token, err := jwt.GenerateToken(name)
-	if err != nil {
-		return "", err
 	}
 	return token, nil
 }
@@ -95,8 +87,9 @@ func (r *queryResolver) Notes(ctx context.Context) ([]*model.Note, error) {
 	dbNotes = r.Resolver.INoteService.GetAll()
 	for _, note := range dbNotes {
 		grahpqlUser := &model.User{
-			ID:   note.User.ID,
-			Name: note.User.Name,
+			ID:    note.User.ID,
+			Name:  note.User.Name,
+			Email: note.User.Email,
 		}
 		resultNotes = append(resultNotes, &model.Note{ID: note.ID, Title: note.Title, Content: note.Content, User: grahpqlUser})
 	}
@@ -115,8 +108,9 @@ func (r *queryResolver) UserConfig(ctx context.Context) (*model.UserConfig, erro
 		IsListMode: uc.IsListMode,
 		IsDarkMode: uc.IsDarkMode,
 		User: &model.User{
-			ID:   uc.User.ID,
-			Name: uc.User.Name,
+			ID:    uc.User.ID,
+			Name:  uc.User.Name,
+			Email: uc.User.Email,
 		},
 	}
 

@@ -1,6 +1,7 @@
 package jwt
 
 import (
+	"context"
 	"errors"
 	"github.com/dgrijalva/jwt-go"
 	"log"
@@ -13,13 +14,16 @@ var (
 )
 
 // GenerateToken generates a jwt token and assign a username to it's claims and return it
-func GenerateToken(name string) (string, error) {
+func GenerateToken(ctx context.Context, userId int, email string) (string, error) {
 	token := jwt.New(jwt.SigningMethodHS256)
 	/* Create a map to store our claims */
 	claims := token.Claims.(jwt.MapClaims)
 	/* Set token claims */
-	claims["name"] = name
+	claims["id"] = userId
+	claims["email"] = email
+	claims["issuedAt"] = time.Now().Unix()
 	claims["exp"] = time.Now().Add(time.Hour * 24).Unix()
+
 	tokenString, err := token.SignedString(SecretKey)
 	if err != nil {
 		log.Fatal("Error in Generating key")
@@ -27,8 +31,6 @@ func GenerateToken(name string) (string, error) {
 	}
 	return tokenString, nil
 }
-
-var mySigningKey = []byte("test")
 
 // ParseToken parses a jwt token and returns the username in it's claims
 func ParseToken(tokenStr string) (string, error) {
@@ -41,13 +43,13 @@ func ParseToken(tokenStr string) (string, error) {
 		// todo get secret from config
 		//jwtSecret, err := ts.SecretsConfig.GetJwtSecret()
 		//return []byte(jwtSecret), err
-		return mySigningKey, nil
+		return SecretKey, nil
 	})
 
 	if token != nil && token.Valid {
 		if claims, ok := token.Claims.(jwt.MapClaims); ok {
-			name := claims["name"].(string)
-			return name, nil
+			email := claims["email"].(string)
+			return email, nil
 		}
 		return "", errors.New("claim failed")
 	}

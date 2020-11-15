@@ -3,6 +3,8 @@ package auth
 import (
 	"context"
 	"database/sql"
+	"errors"
+	"fmt"
 	"github.com/google/wire"
 	"golang.org/x/crypto/bcrypt"
 	"hackernews-api/entities"
@@ -24,7 +26,9 @@ type IAuthService interface {
 	AuthMiddleware() func(http.Handler) http.Handler
 	HashPassword(string) (string, error)
 	CheckPasswordHash(string, string) bool
-	Authenticate(context.Context, entities.User) bool
+	Authenticate(context.Context, string, string) bool
+	Login(context.Context, string, string) (string, error)
+	RefreshToken(context.Context, string) (string, error)
 }
 
 type AuthService struct {
@@ -49,15 +53,15 @@ func (as AuthService) AuthMiddleware() func(http.Handler) http.Handler {
 
 				//validate jwt token
 				tokenStr := header
-				name, err := jwt.ParseToken(tokenStr)
+				email, err := jwt.ParseToken(tokenStr)
 				if err != nil {
 					next.ServeHTTP(w, r)
 					return
 				}
 
 				// create user and check if user exists in db
-				user := entities.User{Name: name}
-				id, err := as.UserRepository.GetUserIdByName(r.Context(), name)
+				user := entities.User{Email: email}
+				id, err := as.UserRepository.GetUserIdByEmail(r.Context(), email)
 				if err != nil {
 					// token parsing failed, nevertheless we allow routing
 					next.ServeHTTP(w, r)
@@ -95,12 +99,12 @@ func (as AuthService) CheckPasswordHash(password, hash string) bool {
 	return err == nil
 }
 
-func (as AuthService) Authenticate(ctx context.Context, user entities.User) bool {
-	statement, err := as.DbProvider.Db.Prepare("select password from user WHERE name = ?")
+func (as AuthService) Authenticate(ctx context.Context, email string, password string) bool {
+	statement, err := as.DbProvider.Db.Prepare("select password from user WHERE email = ?")
 	if err != nil {
 		log.Fatal(err)
 	}
-	row := statement.QueryRow(user.Name)
+	row := statement.QueryRow(email)
 
 	var hashedPassword string
 	err = row.Scan(&hashedPassword)
@@ -112,5 +116,34 @@ func (as AuthService) Authenticate(ctx context.Context, user entities.User) bool
 		}
 	}
 
-	return as.CheckPasswordHash(user.Password, hashedPassword)
+	return as.CheckPasswordHash(password, hashedPassword)
+}
+
+func (as AuthService) Login(ctx context.Context, email string, password string) (string, error) {
+
+	correct := as.Authenticate(ctx, email, password)
+	if !correct {
+		return "", errors.New("wrong name or password")
+	}
+
+	id, err := as.UserRepository.GetUserIdByEmail(ctx, email)
+	token, err := jwt.GenerateToken(ctx, id, email)
+	if err != nil {
+		return "", err
+	}
+
+	return token, nil
+}
+
+func (as AuthService) RefreshToken(ctx context.Context, token string) (string, error) {
+	email, err := jwt.ParseToken(token)
+	if err != nil {
+		return "", fmt.Errorf("access denied")
+	}
+	id, err := as.UserRepository.GetUserIdByEmail(ctx, email)
+	token, err = jwt.GenerateToken(ctx, id, email)
+	if err != nil {
+		return "", err
+	}
+	return token, nil
 }

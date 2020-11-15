@@ -17,7 +17,7 @@ type App struct {
 	DbProvider        *database.DbProvider
 	UserService       *users.UserService
 	NoteService       *note.NoteService
-	NewAuthService    *auth.AuthService
+	AuthService       *auth.AuthService
 	UserConfigService *user_config.UserConfigService
 }
 

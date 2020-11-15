@@ -4,16 +4,18 @@ import (
 	"context"
 	_ "database/sql"
 	"github.com/google/wire"
+	"github.com/sirupsen/logrus"
 	"hackernews-api/entities"
 	"hackernews-api/internal/pkg/db/migrations/mysql"
+	"hackernews-api/internal/pkg/jwt"
 	"hackernews-api/repositories"
 	"hackernews-api/services/auth"
 	"log"
 )
 
 type IUserService interface {
-	Create(ctx context.Context, user entities.User)
-	GetUserIdByName(ctx context.Context, name string) (int, error)
+	CreateUser(ctx context.Context, user entities.User) (string, error)
+	GetUserIdByEmail(ctx context.Context, name string) (int, error)
 }
 
 type UserService struct {
@@ -27,22 +29,29 @@ var NewUserService = wire.NewSet(
 	wire.Struct(new(UserService), "*"),
 	wire.Bind(new(IUserService), new(*UserService)))
 
-func (us *UserService) Create(ctx context.Context, user entities.User) {
+func (us *UserService) CreateUser(ctx context.Context, user entities.User) (string, error) {
 	hashedPassword, err := us.AuthService.HashPassword(user.Password)
 	if err != nil {
 		log.Fatal(err)
 	}
 	user.Password = hashedPassword
 
-	_, err = us.UserRepository.InsertUser(ctx, user)
+	lastId, err := us.UserRepository.InsertUser(ctx, user)
 	if err != nil {
-		log.Fatal(err)
+		logrus.WithError(err).Warn(err)
+		return "", err
 	}
+
+	token, err := jwt.GenerateToken(ctx, int(lastId), user.Email)
+	if err != nil {
+		return "", err
+	}
+	return token, nil
 }
 
 //GetUserIdByUsername check if a user exists in database by given username
-func (us *UserService) GetUserIdByName(ctx context.Context, name string) (int, error) {
-	id, err := us.UserRepository.GetUserIdByName(ctx, name)
+func (us *UserService) GetUserIdByEmail(ctx context.Context, email string) (int, error) {
+	id, err := us.UserRepository.GetUserIdByEmail(ctx, email)
 	if err != nil {
 		log.Fatal(err)
 	}

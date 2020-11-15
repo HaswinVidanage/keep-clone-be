@@ -43,7 +43,7 @@ func GetApp() (*App, error) {
 		DbProvider:        dbProvider,
 		UserService:       userService,
 		NoteService:       noteService,
-		NewAuthService:    authService,
+		AuthService:       authService,
 		UserConfigService: userConfigService,
 	}
 	return app, nil
@@ -55,7 +55,7 @@ type App struct {
 	DbProvider        *database.DbProvider
 	UserService       *users.UserService
 	NoteService       *note.NoteService
-	NewAuthService    *auth.AuthService
+	AuthService       *auth.AuthService
 	UserConfigService *user_config.UserConfigService
 }
 

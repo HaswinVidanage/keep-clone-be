@@ -36,7 +36,7 @@ func main() {
 	}).Handler
 
 	router := chi.NewRouter()
-	router.Use(handlerCors, App.NewAuthService.AuthMiddleware())
+	router.Use(handlerCors, App.AuthService.AuthMiddleware())
 	err = App.DbProvider.Db.Ping()
 	if err != nil {
 		log.Fatal("Error while pinging: ", err.Error())
@@ -49,7 +49,7 @@ func main() {
 		IUserService:       App.UserService,
 		INoteService:       App.NoteService,
 		IUserConfigService: App.UserConfigService,
-		IAuthService:       App.NewAuthService,
+		IAuthService:       App.AuthService,
 	}}))
 
 	router.Handle("/", playground.Handler("GraphQL playground", "/query"))
