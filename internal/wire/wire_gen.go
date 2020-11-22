@@ -6,7 +6,9 @@
 package wire
 
 import (
+	"context"
 	"github.com/google/wire"
+	"hackernews-api/graph"
 	"hackernews-api/internal/config"
 	"hackernews-api/internal/pkg/db/migrations/mysql"
 	"hackernews-api/repositories"
@@ -14,6 +16,7 @@ import (
 	"hackernews-api/services/note"
 	"hackernews-api/services/user_config"
 	"hackernews-api/services/users"
+	"hackernews-api/test"
 )
 
 // Injectors from wire.go:
@@ -41,7 +44,15 @@ func GetApp() (*App, error) {
 	userConfigService := &user_config.UserConfigService{
 		DbProvider: dbProvider,
 	}
+	resolver := graph.Resolver{
+		IUserService:       userService,
+		INoteService:       noteService,
+		IAuthService:       authService,
+		IUserConfigService: userConfigService,
+		IUserRepository:    userRepository,
+	}
 	app := &App{
+		Resolver:          resolver,
 		DbProvider:        dbProvider,
 		UserService:       userService,
 		NoteService:       noteService,
@@ -51,9 +62,47 @@ func GetApp() (*App, error) {
 	return app, nil
 }
 
+func GetTestApp() (*test.TestApp, error) {
+	context := getTestContext()
+	dbProvider := test.InitMockDB()
+	userRepository := &repositories.UserRepository{
+		DbProvider: dbProvider,
+	}
+	authRepository := repositories.AuthRepository{
+		DbProvider: dbProvider,
+	}
+	authService := &auth.AuthService{
+		AuthRepository: authRepository,
+	}
+	userService := &users.UserService{
+		DbProvider:     dbProvider,
+		UserRepository: userRepository,
+		AuthService:    authService,
+	}
+	noteService := &note.NoteService{
+		DbProvider: dbProvider,
+	}
+	userConfigService := &user_config.UserConfigService{
+		DbProvider: dbProvider,
+	}
+	resolver := &graph.Resolver{
+		IUserService:       userService,
+		INoteService:       noteService,
+		IAuthService:       authService,
+		IUserConfigService: userConfigService,
+		IUserRepository:    userRepository,
+	}
+	testAppOptions := &test.TestAppOptions{
+		Resolver: resolver,
+	}
+	testApp := test.InitTestApp(context, testAppOptions)
+	return testApp, nil
+}
+
 // wire.go:
 
 type App struct {
+	Resolver          graph.Resolver
 	DbProvider        *database.DbProvider
 	UserService       *users.UserService
 	NoteService       *note.NoteService
@@ -68,3 +117,7 @@ var configSet = wire.NewSet(config.GetCfg, wire.Bind(new(database.IDbConfig), ne
 var repositorySet = wire.NewSet(repositories.NewUserRepository, repositories.NewAuthRepository)
 
 var serviceSet = wire.NewSet(users.NewUserService, auth.NewAuthService, note.NewNoteService, user_config.NewUserConfigService)
+
+func getTestContext() context.Context {
+	return context.Background()
+}
