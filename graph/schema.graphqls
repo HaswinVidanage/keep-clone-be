@@ -19,11 +19,7 @@ type UserConfig {
 type User {
   id: ID!
   name: String!
-}
-
-input NewLink {
-  title: String!
-  address: String!
+  email: String!
 }
 
 input NewNote {
@@ -37,11 +33,12 @@ input RefreshTokenInput{
 
 input NewUser {
   name: String!
+  email: String!
   password: String!
 }
 
 input Login {
-  name: String!
+  email: String!
   password: String!
 }
 

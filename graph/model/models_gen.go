@@ -3,13 +3,8 @@
 package model
 
 type Login struct {
-	Name     string `json:"name"`
+	Email    string `json:"email"`
 	Password string `json:"password"`
-}
-
-type NewLink struct {
-	Title   string `json:"title"`
-	Address string `json:"address"`
 }
 
 type NewNote struct {
@@ -19,6 +14,7 @@ type NewNote struct {
 
 type NewUser struct {
 	Name     string `json:"name"`
+	Email    string `json:"email"`
 	Password string `json:"password"`
 }
 
@@ -40,8 +36,9 @@ type RefreshTokenInput struct {
 }
 
 type User struct {
-	ID   string `json:"id"`
-	Name string `json:"name"`
+	ID    string `json:"id"`
+	Name  string `json:"name"`
+	Email string `json:"email"`
 }
 
 type UserConfig struct {

@@ -1,6 +1,7 @@
 package main
 
 import (
+	"github.com/rs/cors"
 	"hackernews-api/graph"
 	"hackernews-api/graph/generated"
 	"hackernews-api/internal/wire"
@@ -27,9 +28,15 @@ func main() {
 		return
 	}
 
-	router := chi.NewRouter()
-	router.Use(App.NewAuthService.AuthMiddleware())
+	handlerCors := cors.New(cors.Options{
+		AllowedOrigins:   []string{"http://localhost:*"},
+		AllowedHeaders:   []string{"*"},
+		AllowCredentials: true,
+		Debug:            true,
+	}).Handler
 
+	router := chi.NewRouter()
+	router.Use(handlerCors, App.AuthService.AuthMiddleware())
 	err = App.DbProvider.Db.Ping()
 	if err != nil {
 		log.Fatal("Error while pinging: ", err.Error())
@@ -42,6 +49,7 @@ func main() {
 		IUserService:       App.UserService,
 		INoteService:       App.NoteService,
 		IUserConfigService: App.UserConfigService,
+		IAuthService:       App.AuthService,
 	}}))
 
 	router.Handle("/", playground.Handler("GraphQL playground", "/query"))

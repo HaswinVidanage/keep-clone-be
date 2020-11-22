@@ -3,9 +3,9 @@ package user_config
 import (
 	"context"
 	"github.com/google/wire"
+	"hackernews-api/entities"
 	"hackernews-api/internal/pkg/db/migrations/mysql"
 	"hackernews-api/services/auth"
-	"hackernews-api/services/users"
 	"log"
 )
 
@@ -13,7 +13,7 @@ type UserConfig struct {
 	ID         string
 	IsDarkMode bool
 	IsListMode bool
-	User       *users.User
+	User       *entities.User
 }
 
 type IUserConfigService interface {
@@ -58,7 +58,7 @@ func (ucs UserConfigService) GetConfig(ctx context.Context) *UserConfig {
 			log.Fatal(err)
 		}
 
-		userConfig.User = &users.User{
+		userConfig.User = &entities.User{
 			ID:   id,
 			Name: name,
 		}

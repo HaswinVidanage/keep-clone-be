@@ -3,6 +3,7 @@ package graph
 //go:generate go run github.com/99designs/gqlgen
 
 import (
+	"hackernews-api/services/auth"
 	"hackernews-api/services/note"
 	"hackernews-api/services/user_config"
 	"hackernews-api/services/users"
@@ -15,5 +16,6 @@ import (
 type Resolver struct {
 	users.IUserService
 	note.INoteService
+	auth.IAuthService
 	user_config.IUserConfigService
 }

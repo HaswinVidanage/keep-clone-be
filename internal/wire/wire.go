@@ -6,6 +6,7 @@ import (
 	"github.com/google/wire"
 	"hackernews-api/internal/config"
 	"hackernews-api/internal/pkg/db/migrations/mysql"
+	"hackernews-api/repositories"
 	"hackernews-api/services/auth"
 	"hackernews-api/services/note"
 	"hackernews-api/services/user_config"
@@ -16,7 +17,7 @@ type App struct {
 	DbProvider        *database.DbProvider
 	UserService       *users.UserService
 	NoteService       *note.NoteService
-	NewAuthService    *auth.AuthService
+	AuthService       *auth.AuthService
 	UserConfigService *user_config.UserConfigService
 }
 
@@ -30,6 +31,11 @@ var configSet = wire.NewSet(
 	wire.Bind(new(database.IDbConfig), new(*config.Config)),
 )
 
+var repositorySet = wire.NewSet(
+	repositories.NewUserRepository,
+	repositories.NewAuthRepository,
+)
+
 var serviceSet = wire.NewSet(
 	users.NewUserService,
 	auth.NewAuthService,
@@ -41,6 +47,7 @@ func GetApp() (*App, error) {
 	panic(wire.Build(
 		configSet,
 		dbSet,
+		repositorySet,
 		serviceSet,
 		wire.Struct(new(App), "*"),
 	))

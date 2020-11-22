@@ -9,6 +9,7 @@ import (
 	"github.com/google/wire"
 	"hackernews-api/internal/config"
 	"hackernews-api/internal/pkg/db/migrations/mysql"
+	"hackernews-api/repositories"
 	"hackernews-api/services/auth"
 	"hackernews-api/services/note"
 	"hackernews-api/services/user_config"
@@ -20,17 +21,22 @@ import (
 func GetApp() (*App, error) {
 	configConfig := config.GetCfg()
 	dbProvider := database.InitDB(configConfig)
-	userService := &users.UserService{
+	userRepository := &repositories.UserRepository{
 		DbProvider: dbProvider,
 	}
-	noteService := &note.NoteService{
-		DbProvider: dbProvider,
-	}
-	usersUserService := users.UserService{
+	authRepository := repositories.AuthRepository{
 		DbProvider: dbProvider,
 	}
 	authService := &auth.AuthService{
-		UserService: usersUserService,
+		AuthRepository: authRepository,
+	}
+	userService := &users.UserService{
+		DbProvider:     dbProvider,
+		UserRepository: userRepository,
+		AuthService:    authService,
+	}
+	noteService := &note.NoteService{
+		DbProvider: dbProvider,
 	}
 	userConfigService := &user_config.UserConfigService{
 		DbProvider: dbProvider,
@@ -39,7 +45,7 @@ func GetApp() (*App, error) {
 		DbProvider:        dbProvider,
 		UserService:       userService,
 		NoteService:       noteService,
-		NewAuthService:    authService,
+		AuthService:       authService,
 		UserConfigService: userConfigService,
 	}
 	return app, nil
@@ -51,12 +57,14 @@ type App struct {
 	DbProvider        *database.DbProvider
 	UserService       *users.UserService
 	NoteService       *note.NoteService
-	NewAuthService    *auth.AuthService
+	AuthService       *auth.AuthService
 	UserConfigService *user_config.UserConfigService
 }
 
 var dbSet = wire.NewSet(database.InitDB, wire.Bind(new(database.IDbProvider), new(*database.DbProvider)))
 
 var configSet = wire.NewSet(config.GetCfg, wire.Bind(new(database.IDbConfig), new(*config.Config)))
+
+var repositorySet = wire.NewSet(repositories.NewUserRepository, repositories.NewAuthRepository)
 
 var serviceSet = wire.NewSet(users.NewUserService, auth.NewAuthService, note.NewNoteService, user_config.NewUserConfigService)
