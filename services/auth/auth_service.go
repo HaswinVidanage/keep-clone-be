@@ -2,16 +2,13 @@ package auth
 
 import (
 	"context"
-	"database/sql"
 	"errors"
 	"fmt"
 	"github.com/google/wire"
 	"golang.org/x/crypto/bcrypt"
 	"hackernews-api/entities"
-	"hackernews-api/internal/pkg/db/migrations/mysql"
 	"hackernews-api/internal/pkg/jwt"
 	"hackernews-api/repositories"
-	"log"
 	"net/http"
 	"strconv"
 )
@@ -32,8 +29,7 @@ type IAuthService interface {
 }
 
 type AuthService struct {
-	DbProvider     *database.DbProvider
-	UserRepository repositories.IUserRepository
+	AuthRepository repositories.AuthRepository
 }
 
 var NewAuthService = wire.NewSet(
@@ -61,7 +57,7 @@ func (as AuthService) AuthMiddleware() func(http.Handler) http.Handler {
 
 				// create user and check if user exists in db
 				user := entities.User{Email: email}
-				id, err := as.UserRepository.GetUserIdByEmail(r.Context(), email)
+				id, err := as.AuthRepository.GetUserIdByEmail(r.Context(), email)
 				if err != nil {
 					// token parsing failed, nevertheless we allow routing
 					next.ServeHTTP(w, r)
@@ -100,22 +96,10 @@ func (as AuthService) CheckPasswordHash(password, hash string) bool {
 }
 
 func (as AuthService) Authenticate(ctx context.Context, email string, password string) bool {
-	statement, err := as.DbProvider.Db.Prepare("select password from user WHERE email = ?")
+	hashedPassword, err := as.AuthRepository.GetHashedPasswordByUserEmail(ctx, email)
 	if err != nil {
-		log.Fatal(err)
+		return false
 	}
-	row := statement.QueryRow(email)
-
-	var hashedPassword string
-	err = row.Scan(&hashedPassword)
-	if err != nil {
-		if err == sql.ErrNoRows {
-			return false
-		} else {
-			log.Fatal(err)
-		}
-	}
-
 	return as.CheckPasswordHash(password, hashedPassword)
 }
 
@@ -126,7 +110,7 @@ func (as AuthService) Login(ctx context.Context, email string, password string) 
 		return "", errors.New("wrong name or password")
 	}
 
-	id, err := as.UserRepository.GetUserIdByEmail(ctx, email)
+	id, err := as.AuthRepository.GetUserIdByEmail(ctx, email)
 	token, err := jwt.GenerateToken(ctx, id, email)
 	if err != nil {
 		return "", err
@@ -140,7 +124,7 @@ func (as AuthService) RefreshToken(ctx context.Context, token string) (string, e
 	if err != nil {
 		return "", fmt.Errorf("access denied")
 	}
-	id, err := as.UserRepository.GetUserIdByEmail(ctx, email)
+	id, err := as.AuthRepository.GetUserIdByEmail(ctx, email)
 	token, err = jwt.GenerateToken(ctx, id, email)
 	if err != nil {
 		return "", err

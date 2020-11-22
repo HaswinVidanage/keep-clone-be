@@ -33,6 +33,7 @@ var configSet = wire.NewSet(
 
 var repositorySet = wire.NewSet(
 	repositories.NewUserRepository,
+	repositories.NewAuthRepository,
 )
 
 var serviceSet = wire.NewSet(

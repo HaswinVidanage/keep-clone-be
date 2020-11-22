@@ -24,9 +24,11 @@ func GetApp() (*App, error) {
 	userRepository := &repositories.UserRepository{
 		DbProvider: dbProvider,
 	}
+	authRepository := repositories.AuthRepository{
+		DbProvider: dbProvider,
+	}
 	authService := &auth.AuthService{
-		DbProvider:     dbProvider,
-		UserRepository: userRepository,
+		AuthRepository: authRepository,
 	}
 	userService := &users.UserService{
 		DbProvider:     dbProvider,
@@ -63,6 +65,6 @@ var dbSet = wire.NewSet(database.InitDB, wire.Bind(new(database.IDbProvider), ne
 
 var configSet = wire.NewSet(config.GetCfg, wire.Bind(new(database.IDbConfig), new(*config.Config)))
 
-var repositorySet = wire.NewSet(repositories.NewUserRepository)
+var repositorySet = wire.NewSet(repositories.NewUserRepository, repositories.NewAuthRepository)
 
 var serviceSet = wire.NewSet(users.NewUserService, auth.NewAuthService, note.NewNoteService, user_config.NewUserConfigService)

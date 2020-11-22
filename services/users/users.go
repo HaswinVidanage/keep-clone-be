@@ -14,7 +14,7 @@ import (
 )
 
 type IUserService interface {
-	CreateUser(ctx context.Context, user entities.User) (string, error)
+	CreateUser(ctx context.Context, user entities.CreateUser) (string, error)
 	GetUserIdByEmail(ctx context.Context, name string) (int, error)
 }
 
@@ -29,7 +29,7 @@ var NewUserService = wire.NewSet(
 	wire.Struct(new(UserService), "*"),
 	wire.Bind(new(IUserService), new(*UserService)))
 
-func (us *UserService) CreateUser(ctx context.Context, user entities.User) (string, error) {
+func (us *UserService) CreateUser(ctx context.Context, user entities.CreateUser) (string, error) {
 	hashedPassword, err := us.AuthService.HashPassword(user.Password)
 	if err != nil {
 		log.Fatal(err)

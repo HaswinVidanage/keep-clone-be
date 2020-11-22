@@ -48,7 +48,7 @@ func (r *mutationResolver) CreateNote(ctx context.Context, input model.NewNote) 
 }
 
 func (r *mutationResolver) CreateUser(ctx context.Context, input model.NewUser) (string, error) {
-	token, err := r.IUserService.CreateUser(ctx, entities.User{
+	token, err := r.IUserService.CreateUser(ctx, entities.CreateUser{
 		Name:     input.Name,
 		Email:    input.Email,
 		Password: input.Password,
