@@ -15,11 +15,11 @@ type IUserRepository interface {
 	InsertUser(context.Context, entities.CreateUser) (int, error)
 	GetUserIdByEmail(context.Context, string) (int, error)
 	UpdateUserByFields(ctx context.Context, user entities.UpdateUser) (int, error)
+	FindUserByID(ctx context.Context, id int) (entities.User, error)
+	FindUserByEmail(ctx context.Context, email string) (entities.User, error)
 	// DeleteUser
 	// DeleteUserByID
 	// FindAllUser
-	FindUserByID(ctx context.Context, id int) (entities.User, error)
-	// UsersByEmail
 }
 
 type UserRepository struct {
@@ -72,23 +72,6 @@ func (ur *UserRepository) GetUserIdByEmail(ctx context.Context, email string) (i
 	return Id, nil
 }
 
-func (ur *UserRepository) FindUserByID(ctx context.Context, id int) (entities.User, error) {
-	statement, err := ur.DbProvider.Db.Prepare("select * from user WHERE id = ?")
-	if err != nil {
-		log.Fatal(err)
-	}
-	row := statement.QueryRow(id)
-	var user entities.User
-	err = row.Scan(&user.ID, &user.Name, &user.Email)
-	if err != nil {
-		if err != sql.ErrNoRows {
-			log.Print(err)
-		}
-		return entities.User{}, err
-	}
-	return user, nil
-}
-
 func (ur *UserRepository) UpdateUserByFields(ctx context.Context, u entities.UpdateUser) (int, error) {
 	updateMap := map[string]interface{}{}
 	if u.Name != nil {
@@ -113,4 +96,38 @@ func (ur *UserRepository) UpdateUserByFields(ctx context.Context, u entities.Upd
 	}
 
 	return int(lastId), nil
+}
+
+func (ur *UserRepository) FindUserByID(ctx context.Context, id int) (entities.User, error) {
+	statement, err := ur.DbProvider.Db.Prepare("select * from user WHERE id = ?")
+	if err != nil {
+		log.Fatal(err)
+	}
+	row := statement.QueryRow(id)
+	var user entities.User
+	err = row.Scan(&user.ID, &user.Name, &user.Email)
+	if err != nil {
+		if err != sql.ErrNoRows {
+			log.Print(err)
+		}
+		return entities.User{}, err
+	}
+	return user, nil
+}
+
+func (ur *UserRepository) FindUserByEmail(ctx context.Context, email string) (entities.User, error) {
+	statement, err := ur.DbProvider.Db.Prepare("select * from user WHERE email = ?")
+	if err != nil {
+		log.Fatal(err)
+	}
+	row := statement.QueryRow(email)
+	var user entities.User
+	err = row.Scan(&user.ID, &user.Name, &user.Email)
+	if err != nil {
+		if err != sql.ErrNoRows {
+			log.Print(err)
+		}
+		return entities.User{}, err
+	}
+	return user, nil
 }
