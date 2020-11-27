@@ -14,14 +14,12 @@ import (
 type IUserRepository interface {
 	InsertUser(context.Context, entities.CreateUser) (int, error)
 	GetUserIdByEmail(context.Context, string) (int, error)
-	// UpdateUserByFields
-	UpdateUser(ctx context.Context, u entities.User) (int, error)
+	UpdateUserByFields(ctx context.Context, user entities.UpdateUser) (int, error)
 	// DeleteUser
 	// DeleteUserByID
 	// FindAllUser
 	FindUserByID(ctx context.Context, id int) (entities.User, error)
 	// UsersByEmail
-	UpdateUserBaseQuery(ctx context.Context, u entities.User) *sq.UpdateBuilder
 }
 
 type UserRepository struct {
@@ -74,24 +72,6 @@ func (ur *UserRepository) GetUserIdByEmail(ctx context.Context, email string) (i
 	return Id, nil
 }
 
-func (ur *UserRepository) UpdateUser(ctx context.Context, u entities.User) (int, error) {
-	qb := ur.UpdateUserBaseQuery(ctx, u)
-	// run query
-	result, err := qb.RunWith(ur.DbProvider.Db).Exec()
-	if err != nil {
-		logrus.WithError(err).Warn(err)
-		return 0, err
-	}
-
-	lastId, err := result.LastInsertId()
-	if err != nil {
-		logrus.WithError(err).Warn(err)
-		return 0, err
-	}
-
-	return int(lastId), nil
-}
-
 func (ur *UserRepository) FindUserByID(ctx context.Context, id int) (entities.User, error) {
 	statement, err := ur.DbProvider.Db.Prepare("select * from user WHERE id = ?")
 	if err != nil {
@@ -109,11 +89,28 @@ func (ur *UserRepository) FindUserByID(ctx context.Context, id int) (entities.Us
 	return user, nil
 }
 
-// Get queries
-func (ur *UserRepository) UpdateUserBaseQuery(ctx context.Context, u entities.User) *sq.UpdateBuilder {
-	qb := sq.Update("`user`").SetMap(map[string]interface{}{
-		"`name`":  u.Name,
-		"`email`": u.Email,
-	}).Where(sq.Eq{"`id`": u.ID})
-	return qb
+func (ur *UserRepository) UpdateUserByFields(ctx context.Context, u entities.UpdateUser) (int, error) {
+	updateMap := map[string]interface{}{}
+	if u.Name != nil {
+		updateMap["`name`"] = *u.Name
+	}
+	if u.Email != nil {
+		updateMap["`email`"] = *u.Email
+	}
+
+	qb := sq.Update("`user`").SetMap(updateMap).Where(sq.Eq{"`id`": u.ID})
+	// run query
+	result, err := qb.RunWith(ur.DbProvider.Db).Exec()
+	if err != nil {
+		logrus.WithError(err).Warn(err)
+		return 0, err
+	}
+
+	lastId, err := result.LastInsertId()
+	if err != nil {
+		logrus.WithError(err).Warn(err)
+		return 0, err
+	}
+
+	return int(lastId), nil
 }
