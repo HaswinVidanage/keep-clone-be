@@ -27,11 +27,10 @@ func TestVisitService(t *testing.T) {
 	suite.Run(t, testSuite)
 }
 
-func (s *UserReposirotyTestSuite) TestSomething() {
-
+func (s *UserReposirotyTestSuite) Test_InsertUser() {
 	user := entities.CreateUser{
-		Name:     "Haswin",
-		Email:    "haswind@hotmail.com",
+		Name:     "john",
+		Email:    "haswin@gmail.com",
 		Password: "123",
 	}
 
@@ -48,4 +47,23 @@ func (s *UserReposirotyTestSuite) TestSomething() {
 	err = s.Mock.ExpectationsWereMet()
 	s.Nil(err)
 
+}
+
+func (s *UserReposirotyTestSuite) Test_GetUserIdByEmail() {
+	email := "haswin@gmail.com"
+	query := "select id from user WHERE email = ?"
+	rows := sqlmock.NewRows([]string{"id"}).
+		AddRow(1)
+
+	s.Mock.ExpectPrepare(query)
+	s.Mock.ExpectQuery(query).WithArgs(email).WillReturnRows(rows)
+
+	// now we execute our method
+	lastId, err := s.Resolver.IUserRepository.GetUserIdByEmail(s.Ctx, email)
+	s.Nil(err)
+	s.Equal(1, lastId)
+
+	// we make sure that all expectations were met
+	err = s.Mock.ExpectationsWereMet()
+	s.Nil(err)
 }
