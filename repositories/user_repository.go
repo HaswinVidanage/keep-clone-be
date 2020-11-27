@@ -11,7 +11,7 @@ import (
 )
 
 type IUserRepository interface {
-	InsertUser(context.Context, entities.CreateUser) (int64, error)
+	InsertUser(context.Context, entities.CreateUser) (int, error)
 	GetUserIdByEmail(context.Context, string) (int, error)
 }
 
@@ -23,7 +23,7 @@ var NewUserRepository = wire.NewSet(
 	wire.Struct(new(UserRepository), "*"),
 	wire.Bind(new(IUserRepository), new(*UserRepository)))
 
-func (ur *UserRepository) InsertUser(ctx context.Context, user entities.CreateUser) (int64, error) {
+func (ur *UserRepository) InsertUser(ctx context.Context, user entities.CreateUser) (int, error) {
 	statement, err := ur.DbProvider.Db.Prepare("insert into user( name, email, password) values(?,?,?)")
 	print(statement)
 	if err != nil {
@@ -43,7 +43,7 @@ func (ur *UserRepository) InsertUser(ctx context.Context, user entities.CreateUs
 		return 0, err
 	}
 
-	return lastId, nil
+	return int(lastId), nil
 }
 
 func (ur *UserRepository) GetUserIdByEmail(ctx context.Context, email string) (int, error) {

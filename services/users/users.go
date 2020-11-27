@@ -42,7 +42,7 @@ func (us *UserService) CreateUser(ctx context.Context, user entities.CreateUser)
 		return "", err
 	}
 
-	token, err := jwt.GenerateToken(ctx, int(lastId), user.Email)
+	token, err := jwt.GenerateToken(ctx, lastId, user.Email)
 	if err != nil {
 		return "", err
 	}
