@@ -25,7 +25,7 @@ type NewUserConfig struct {
 }
 
 type Note struct {
-	ID      string `json:"id"`
+	ID      int    `json:"id"`
 	Title   string `json:"title"`
 	Content string `json:"content"`
 	User    *User  `json:"user"`
@@ -36,14 +36,14 @@ type RefreshTokenInput struct {
 }
 
 type User struct {
-	ID    string `json:"id"`
+	ID    int    `json:"id"`
 	Name  string `json:"name"`
 	Email string `json:"email"`
 }
 
 type UserConfig struct {
-	ID         string `json:"id"`
-	IsDarkMode bool   `json:"isDarkMode"`
-	IsListMode bool   `json:"isListMode"`
-	User       *User  `json:"user"`
+	ID         int   `json:"id"`
+	IsDarkMode bool  `json:"isDarkMode"`
+	IsListMode bool  `json:"isListMode"`
+	User       *User `json:"user"`
 }

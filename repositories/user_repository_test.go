@@ -70,7 +70,7 @@ func (s *UserReposirotyTestSuite) Test_GetUserIdByEmail() {
 
 func (s *UserReposirotyTestSuite) Test_UpdateUser() {
 	user := entities.User{
-		ID:    "1",
+		ID:    1,
 		Name:  "john",
 		Email: "haswin@gmail.com",
 	}
@@ -92,7 +92,7 @@ func (s *UserReposirotyTestSuite) Test_UpdateUser() {
 
 func (s *UserReposirotyTestSuite) Test_FindUserByID() {
 	user := entities.User{
-		ID:    "1",
+		ID:    1,
 		Name:  "john",
 		Email: "haswin@gmail.com",
 	}
@@ -107,7 +107,7 @@ func (s *UserReposirotyTestSuite) Test_FindUserByID() {
 	// now we execute our method
 	user, err := s.Resolver.IUserRepository.FindUserByID(s.Ctx, 1)
 	s.Nil(err)
-	s.Equal("1", user.ID)
+	s.Equal(user.ID, user.ID)
 
 	// we make sure that all expectations were met
 	err = s.Mock.ExpectationsWereMet()

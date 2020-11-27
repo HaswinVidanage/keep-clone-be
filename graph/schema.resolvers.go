@@ -12,7 +12,6 @@ import (
 	"hackernews-api/services/auth"
 	"hackernews-api/services/note"
 	"math/rand"
-	"strconv"
 )
 
 func (r *mutationResolver) CreateNote(ctx context.Context, input model.NewNote) (*model.Note, error) {
@@ -28,7 +27,7 @@ func (r *mutationResolver) CreateNote(ctx context.Context, input model.NewNote) 
 	noteID := r.Resolver.INoteService.Save(note)
 
 	newModel := &model.Note{
-		ID:      strconv.FormatInt(noteID, 10),
+		ID:      int(noteID),
 		Title:   note.Title,
 		Content: note.Content,
 		// TODO move to service and get user by id

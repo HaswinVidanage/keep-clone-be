@@ -3,21 +3,21 @@
 # https://gqlgen.com/getting-started/
 
 type Note {
-  id: ID!
+  id: Int!
   title: String!
   content: String!
   user: User!
 }
 
 type UserConfig {
-  id: ID!
+  id: Int!
   isDarkMode: Boolean!
   isListMode: Boolean!
   user: User!
 }
 
 type User {
-  id: ID!
+  id: Int!
   name: String!
   email: String!
 }

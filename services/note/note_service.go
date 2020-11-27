@@ -8,7 +8,7 @@ import (
 )
 
 type Note struct {
-	ID      string
+	ID      int
 	Title   string
 	Content string
 	User    *entities.User
@@ -63,7 +63,7 @@ func (ns NoteService) GetAll() []Note {
 
 	var notes []Note
 	var name string
-	var id string
+	var id int
 	for rows.Next() {
 		var note Note
 		err := rows.Scan(&note.ID, &note.Title, &note.Content, &id, &name)

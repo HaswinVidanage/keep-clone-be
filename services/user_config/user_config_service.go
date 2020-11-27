@@ -3,6 +3,7 @@ package user_config
 import (
 	"context"
 	"github.com/google/wire"
+	"github.com/sirupsen/logrus"
 	"hackernews-api/entities"
 	"hackernews-api/internal/pkg/db/migrations/mysql"
 	"hackernews-api/services/auth"
@@ -10,7 +11,7 @@ import (
 )
 
 type UserConfig struct {
-	ID         string
+	ID         int
 	IsDarkMode bool
 	IsListMode bool
 	User       *entities.User
@@ -50,7 +51,7 @@ func (ucs UserConfigService) GetConfig(ctx context.Context) *UserConfig {
 
 	var userConfigs []UserConfig
 	var name string
-	var id string
+	var id int
 	for rows.Next() {
 		var userConfig UserConfig
 		err := rows.Scan(&userConfig.ID, &userConfig.IsDarkMode, &userConfig.IsListMode, &id, &name)
@@ -67,12 +68,14 @@ func (ucs UserConfigService) GetConfig(ctx context.Context) *UserConfig {
 	}
 
 	if err = rows.Err(); err != nil {
-		log.Fatal(err)
+		logrus.WithError(err).Warn(err)
 	}
 
 	count := len(userConfigs)
 	if count > 1 {
-		log.Fatal("user config returned more than 1 record for fk_user : " + id)
+		logrus.WithFields(logrus.Fields{
+			"fkUser": id,
+		}).WithError(err).Warn(err)
 	} else if count == 0 {
 		return nil
 	}

@@ -10,7 +10,6 @@ import (
 	"hackernews-api/internal/pkg/jwt"
 	"hackernews-api/repositories"
 	"net/http"
-	"strconv"
 )
 
 var userCtxKey = &contextKey{"user"}
@@ -64,7 +63,7 @@ func (as AuthService) AuthMiddleware() func(http.Handler) http.Handler {
 					return
 				}
 
-				user.ID = strconv.Itoa(id)
+				user.ID = id
 				// put it in context
 				ctx := context.WithValue(r.Context(), userCtxKey, &user)
 
