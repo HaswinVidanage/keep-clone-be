@@ -99,7 +99,7 @@ func (ur *UserRepository) UpdateUserByFields(ctx context.Context, u entities.Upd
 }
 
 func (ur *UserRepository) FindUserByID(ctx context.Context, id int) (entities.User, error) {
-	statement, err := ur.DbProvider.Db.Prepare("select * from user WHERE id = ?")
+	statement, err := ur.DbProvider.Db.Prepare("select u.id, u.name, u.email from user u WHERE id = ?")
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -116,7 +116,7 @@ func (ur *UserRepository) FindUserByID(ctx context.Context, id int) (entities.Us
 }
 
 func (ur *UserRepository) FindUserByEmail(ctx context.Context, email string) (entities.User, error) {
-	statement, err := ur.DbProvider.Db.Prepare("select * from user WHERE email = ?")
+	statement, err := ur.DbProvider.Db.Prepare("select u.id, u.name, u.email from user u WHERE email = ?")
 	if err != nil {
 		log.Fatal(err)
 	}

@@ -10,7 +10,6 @@ import (
 	"hackernews-api/graph/generated"
 	"hackernews-api/graph/model"
 	"hackernews-api/services/auth"
-	"hackernews-api/services/note"
 	"math/rand"
 )
 
@@ -20,11 +19,16 @@ func (r *mutationResolver) CreateNote(ctx context.Context, input model.NewNote) 
 		return &model.Note{}, fmt.Errorf("access denied")
 	}
 
-	var note note.Note
+	var note entities.Note
 	note.Title = input.Title
 	note.Content = input.Content
 	note.User = user
-	noteID := r.Resolver.INoteService.Save(note)
+
+	noteID := r.Resolver.INoteService.SaveNote(note)
+	userDto, err := r.Resolver.IUserService.GetUserByID(ctx, user.ID)
+	if err != nil {
+		return nil, err
+	}
 
 	newModel := &model.Note{
 		ID:      int(noteID),
@@ -32,9 +36,9 @@ func (r *mutationResolver) CreateNote(ctx context.Context, input model.NewNote) 
 		Content: note.Content,
 		// TODO move to service and get user by id
 		User: &model.User{
-			ID:    user.ID,
-			Email: user.Email,
-			Name:  user.Name,
+			ID:    userDto.ID,
+			Email: userDto.Email,
+			Name:  userDto.Name,
 		},
 	}
 
@@ -82,7 +86,7 @@ func (r *mutationResolver) CreateUserConfig(ctx context.Context, input model.New
 
 func (r *queryResolver) Notes(ctx context.Context) ([]*model.Note, error) {
 	var resultNotes []*model.Note
-	var dbNotes []note.Note
+	var dbNotes []entities.Note
 	dbNotes = r.Resolver.INoteService.GetAll()
 	for _, note := range dbNotes {
 		grahpqlUser := &model.User{

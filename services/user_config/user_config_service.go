@@ -10,15 +10,8 @@ import (
 	"log"
 )
 
-type UserConfig struct {
-	ID         int
-	IsDarkMode bool
-	IsListMode bool
-	User       *entities.User
-}
-
 type IUserConfigService interface {
-	GetConfig(ctx context.Context) *UserConfig
+	GetConfig(ctx context.Context) *entities.UserConfig
 	Save(ctx context.Context, isDarkMode bool, isListMode bool, fkUser int) int64
 }
 
@@ -30,7 +23,7 @@ var NewUserConfigService = wire.NewSet(
 	wire.Struct(new(UserConfigService), "*"),
 	wire.Bind(new(IUserConfigService), new(*UserConfigService)))
 
-func (ucs UserConfigService) GetConfig(ctx context.Context) *UserConfig {
+func (ucs UserConfigService) GetConfig(ctx context.Context) *entities.UserConfig {
 	userCtx := auth.ForContext(ctx)
 
 	if userCtx == nil {
@@ -49,11 +42,11 @@ func (ucs UserConfigService) GetConfig(ctx context.Context) *UserConfig {
 	}
 	defer rows.Close()
 
-	var userConfigs []UserConfig
+	var userConfigs []entities.UserConfig
 	var name string
 	var id int
 	for rows.Next() {
-		var userConfig UserConfig
+		var userConfig entities.UserConfig
 		err := rows.Scan(&userConfig.ID, &userConfig.IsDarkMode, &userConfig.IsListMode, &id, &name)
 		if err != nil {
 			log.Fatal(err)

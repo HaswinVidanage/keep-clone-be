@@ -7,16 +7,9 @@ import (
 	"log"
 )
 
-type Note struct {
-	ID      int
-	Title   string
-	Content string
-	User    *entities.User
-}
-
 type INoteService interface {
-	Save(note Note) int64
-	GetAll() []Note
+	SaveNote(note entities.Note) int64
+	GetAll() []entities.Note
 }
 
 type NoteService struct {
@@ -27,7 +20,7 @@ var NewNoteService = wire.NewSet(
 	wire.Struct(new(NoteService), "*"),
 	wire.Bind(new(INoteService), new(*NoteService)))
 
-func (ns NoteService) Save(note Note) int64 {
+func (ns NoteService) SaveNote(note entities.Note) int64 {
 	stmt, err := ns.DbProvider.Db.Prepare("INSERT INTO note(title, content, fk_user) VALUES(?,?, ?)")
 	if err != nil {
 		log.Fatal(err)
@@ -49,7 +42,7 @@ func (ns NoteService) Save(note Note) int64 {
 	return id
 }
 
-func (ns NoteService) GetAll() []Note {
+func (ns NoteService) GetAll() []entities.Note {
 	stmt, err := ns.DbProvider.Db.Prepare("select n.id, n.title, n.content, n.fk_user, u.name from note n inner join user u on n.fk_user = u.ID") // changed
 	if err != nil {
 		log.Fatal(err)
@@ -61,11 +54,11 @@ func (ns NoteService) GetAll() []Note {
 	}
 	defer rows.Close()
 
-	var notes []Note
+	var notes []entities.Note
 	var name string
 	var id int
 	for rows.Next() {
-		var note Note
+		var note entities.Note
 		err := rows.Scan(&note.ID, &note.Title, &note.Content, &id, &name)
 		if err != nil {
 			log.Fatal(err)

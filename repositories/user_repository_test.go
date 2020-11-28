@@ -105,7 +105,7 @@ func (s *UserReposirotyTestSuite) Test_FindUserByID() {
 		Email: "haswin@gmail.com",
 	}
 
-	query := "select * from user WHERE id = ?"
+	query := "select u.id, u.name, u.email from user u WHERE id = ?"
 	rows := sqlmock.NewRows([]string{"id", "name", "email"}).
 		AddRow(1, user.Name, user.Email)
 
@@ -129,12 +129,12 @@ func (s *UserReposirotyTestSuite) Test_FindUserByEmail() {
 		Email: "haswin@gmail.com",
 	}
 
-	query := "select * from user WHERE id = ?"
+	query := "select u.id, u.name, u.email from user u WHERE email = ?"
 	rows := sqlmock.NewRows([]string{"id", "name", "email"}).
 		AddRow(1, user.Name, user.Email)
 
 	s.Mock.ExpectPrepare(query)
-	s.Mock.ExpectQuery(query).WithArgs(1).WillReturnRows(rows)
+	s.Mock.ExpectQuery(query).WithArgs(user.Email).WillReturnRows(rows)
 
 	// now we execute our method
 	user, err := s.Resolver.IUserRepository.FindUserByEmail(s.Ctx, user.Email)
