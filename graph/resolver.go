@@ -20,4 +20,5 @@ type Resolver struct {
 	auth.IAuthService
 	user_config.IUserConfigService
 	repositories.IUserRepository
+	repositories.INoteRepository
 }

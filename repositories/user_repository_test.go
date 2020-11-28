@@ -10,25 +10,25 @@ import (
 	"testing"
 )
 
-type UserReposirotyTestSuite struct {
+type UserRepositoryTestSuite struct {
 	*test.TestApp
 	suite.Suite
 }
 
-func NewUserRepositoryTestSuite() *UserReposirotyTestSuite {
+func NewUserRepositoryTestSuite() *UserRepositoryTestSuite {
 	app, err := wire.GetTestApp()
 	if err != nil {
 		panic(err)
 	}
-	return &UserReposirotyTestSuite{TestApp: app}
+	return &UserRepositoryTestSuite{TestApp: app}
 }
 
 func TestUserRepository(t *testing.T) {
-	var testSuite *UserReposirotyTestSuite = NewUserRepositoryTestSuite()
+	var testSuite *UserRepositoryTestSuite = NewUserRepositoryTestSuite()
 	suite.Run(t, testSuite)
 }
 
-func (s *UserReposirotyTestSuite) Test_InsertUser() {
+func (s *UserRepositoryTestSuite) Test_InsertUser() {
 	user := entities.CreateUser{
 		Name:     "john",
 		Email:    "haswin@gmail.com",
@@ -50,7 +50,7 @@ func (s *UserReposirotyTestSuite) Test_InsertUser() {
 
 }
 
-func (s *UserReposirotyTestSuite) Test_GetUserIdByEmail() {
+func (s *UserRepositoryTestSuite) Test_GetUserIdByEmail() {
 	email := "haswin@gmail.com"
 	query := "select id from user WHERE email = ?"
 	rows := sqlmock.NewRows([]string{"id"}).
@@ -69,7 +69,7 @@ func (s *UserReposirotyTestSuite) Test_GetUserIdByEmail() {
 	s.Nil(err)
 }
 
-func (s *UserReposirotyTestSuite) Test_UpdateUserByFields() {
+func (s *UserRepositoryTestSuite) Test_UpdateUserByFields() {
 	id := 1
 	name := "john"
 	email := "haswin@gmail.com"
@@ -86,7 +86,7 @@ func (s *UserReposirotyTestSuite) Test_UpdateUserByFields() {
 	qb := sqrl.Update("`user`").SetMap(updateMap).Where(sqrl.Eq{"`id`": u.ID})
 	query, _, err := qb.ToSql()
 	s.NoError(err)
-	s.Mock.ExpectExec(query).WithArgs(u.Email, u.Name, u.ID).WillReturnResult(sqlmock.NewResult(1, 1))
+	s.Mock.ExpectExec(query).WillReturnResult(sqlmock.NewResult(1, 1))
 
 	// now we execute our method
 	lastId, err := s.Resolver.IUserRepository.UpdateUserByFields(s.Ctx, u)
@@ -98,7 +98,7 @@ func (s *UserReposirotyTestSuite) Test_UpdateUserByFields() {
 	s.Nil(err)
 }
 
-func (s *UserReposirotyTestSuite) Test_FindUserByID() {
+func (s *UserRepositoryTestSuite) Test_FindUserByID() {
 	user := entities.User{
 		ID:    1,
 		Name:  "john",
@@ -122,7 +122,7 @@ func (s *UserReposirotyTestSuite) Test_FindUserByID() {
 	s.Nil(err)
 }
 
-func (s *UserReposirotyTestSuite) Test_FindUserByEmail() {
+func (s *UserRepositoryTestSuite) Test_FindUserByEmail() {
 	user := entities.User{
 		ID:    1,
 		Name:  "john",

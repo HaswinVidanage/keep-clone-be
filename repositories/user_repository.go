@@ -32,7 +32,6 @@ var NewUserRepository = wire.NewSet(
 
 func (ur *UserRepository) InsertUser(ctx context.Context, user entities.CreateUser) (int, error) {
 	statement, err := ur.DbProvider.Db.Prepare("insert into user( name, email, password) values(?,?,?)")
-	print(statement)
 	if err != nil {
 		logrus.WithError(err).Warn(err)
 		return 0, err

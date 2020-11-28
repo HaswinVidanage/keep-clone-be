@@ -1,19 +1,23 @@
 package note
 
 import (
+	"context"
 	"github.com/google/wire"
 	"hackernews-api/entities"
 	"hackernews-api/internal/pkg/db/migrations/mysql"
+	"hackernews-api/repositories"
+	"hackernews-api/services/auth"
 	"log"
 )
 
 type INoteService interface {
 	SaveNote(note entities.Note) int64
-	GetAll() []entities.Note
+	GetAll(ctx context.Context) ([]entities.Note, error)
 }
 
 type NoteService struct {
-	DbProvider *database.DbProvider
+	DbProvider     *database.DbProvider
+	NoteRepository repositories.INoteRepository
 }
 
 var NewNoteService = wire.NewSet(
@@ -42,35 +46,14 @@ func (ns NoteService) SaveNote(note entities.Note) int64 {
 	return id
 }
 
-func (ns NoteService) GetAll() []entities.Note {
-	stmt, err := ns.DbProvider.Db.Prepare("select n.id, n.title, n.content, n.fk_user, u.name from note n inner join user u on n.fk_user = u.ID") // changed
+func (ns NoteService) GetAll(ctx context.Context) ([]entities.Note, error) {
+	userCtx := auth.ForContext(ctx)
+	if userCtx == nil {
+		log.Fatal("unauthorised")
+	}
+	notes, err := ns.NoteRepository.FindNotesByUserID(ctx, userCtx.ID)
 	if err != nil {
-		log.Fatal(err)
+		return nil, err
 	}
-	defer stmt.Close()
-	rows, err := stmt.Query()
-	if err != nil {
-		log.Fatal(err)
-	}
-	defer rows.Close()
-
-	var notes []entities.Note
-	var name string
-	var id int
-	for rows.Next() {
-		var note entities.Note
-		err := rows.Scan(&note.ID, &note.Title, &note.Content, &id, &name)
-		if err != nil {
-			log.Fatal(err)
-		}
-		note.User = &entities.User{
-			ID:   id,
-			Name: name,
-		}
-		notes = append(notes, note)
-	}
-	if err = rows.Err(); err != nil {
-		log.Fatal(err)
-	}
-	return notes
+	return notes, nil
 }

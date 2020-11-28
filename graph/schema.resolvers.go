@@ -87,7 +87,10 @@ func (r *mutationResolver) CreateUserConfig(ctx context.Context, input model.New
 func (r *queryResolver) Notes(ctx context.Context) ([]*model.Note, error) {
 	var resultNotes []*model.Note
 	var dbNotes []entities.Note
-	dbNotes = r.Resolver.INoteService.GetAll()
+	dbNotes, err := r.Resolver.INoteService.GetAll(ctx)
+	if err != nil {
+		return nil, err
+	}
 	for _, note := range dbNotes {
 		grahpqlUser := &model.User{
 			ID:    note.User.ID,

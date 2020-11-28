@@ -38,8 +38,13 @@ func GetApp() (*App, error) {
 		UserRepository: userRepository,
 		AuthService:    authService,
 	}
+	noteRepository := &repositories.NoteRepository{
+		DbProvider:     dbProvider,
+		UserRepository: userRepository,
+	}
 	noteService := &note.NoteService{
-		DbProvider: dbProvider,
+		DbProvider:     dbProvider,
+		NoteRepository: noteRepository,
 	}
 	userConfigService := &user_config.UserConfigService{
 		DbProvider: dbProvider,
@@ -50,6 +55,7 @@ func GetApp() (*App, error) {
 		IAuthService:       authService,
 		IUserConfigService: userConfigService,
 		IUserRepository:    userRepository,
+		INoteRepository:    noteRepository,
 	}
 	app := &App{
 		Resolver:          resolver,
@@ -79,8 +85,13 @@ func GetTestApp() (*test.TestApp, error) {
 		UserRepository: userRepository,
 		AuthService:    authService,
 	}
+	noteRepository := &repositories.NoteRepository{
+		DbProvider:     dbProvider,
+		UserRepository: userRepository,
+	}
 	noteService := &note.NoteService{
-		DbProvider: dbProvider,
+		DbProvider:     dbProvider,
+		NoteRepository: noteRepository,
 	}
 	userConfigService := &user_config.UserConfigService{
 		DbProvider: dbProvider,
@@ -91,6 +102,7 @@ func GetTestApp() (*test.TestApp, error) {
 		IAuthService:       authService,
 		IUserConfigService: userConfigService,
 		IUserRepository:    userRepository,
+		INoteRepository:    noteRepository,
 	}
 	testAppOptions := &test.TestAppOptions{
 		Resolver: resolver,
@@ -114,7 +126,7 @@ var dbSet = wire.NewSet(database.InitDB, wire.Bind(new(database.IDbProvider), ne
 
 var configSet = wire.NewSet(config.GetCfg, wire.Bind(new(database.IDbConfig), new(*config.Config)))
 
-var repositorySet = wire.NewSet(repositories.NewUserRepository, repositories.NewAuthRepository)
+var repositorySet = wire.NewSet(repositories.NewUserRepository, repositories.NewAuthRepository, repositories.NewNoteRepository)
 
 var serviceSet = wire.NewSet(users.NewUserService, auth.NewAuthService, note.NewNoteService, user_config.NewUserConfigService)
 
