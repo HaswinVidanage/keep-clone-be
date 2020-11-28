@@ -171,7 +171,7 @@ func (s *NoteRepositoryTestSuite) Test_DeleteNoteByID() {
 	// now we execute our method
 	lastId, err := s.Resolver.INoteRepository.DeleteNoteByID(s.Ctx, note.ID, note.User.ID)
 	s.Nil(err)
-	s.Equal(4, lastId)
+	s.Equal(3, lastId)
 
 	// we make sure that all expectations were met
 	err = s.Mock.ExpectationsWereMet()

@@ -1,5 +1,7 @@
 #!/usr/bin/env bash
 
+set -e -u
+
 migrate() {
     if [[ $1 != '--down' ]]; then
         migrate -database "mysql://sa:qweqwe@tcp(localhost:3305)/hackernews_db" -path internal/pkg/db/migrations/mysql down
