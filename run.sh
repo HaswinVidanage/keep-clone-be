@@ -14,6 +14,7 @@ genAll() {
 
 test() {
     go test ./... -v
+    echo "tests end"
 }
 
 if [[ $1 = 'migrate' ]]; then
