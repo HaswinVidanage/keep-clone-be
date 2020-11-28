@@ -13,7 +13,7 @@ genAll() {
 }
 
 test() {
-    go test ./...
+    go test ./... -v
 }
 
 if [[ $1 = 'migrate' ]]; then
