@@ -43,7 +43,6 @@ func GetApp() (*App, error) {
 		UserRepository: userRepository,
 	}
 	noteService := &note.NoteService{
-		DbProvider:     dbProvider,
 		NoteRepository: noteRepository,
 	}
 	userConfigService := &user_config.UserConfigService{
@@ -90,7 +89,6 @@ func GetTestApp() (*test.TestApp, error) {
 		UserRepository: userRepository,
 	}
 	noteService := &note.NoteService{
-		DbProvider:     dbProvider,
 		NoteRepository: noteRepository,
 	}
 	userConfigService := &user_config.UserConfigService{
