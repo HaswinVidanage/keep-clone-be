@@ -24,7 +24,11 @@ func (r *mutationResolver) CreateNote(ctx context.Context, input model.NewNote) 
 	note.Content = input.Content
 	note.User = user
 
-	noteID := r.Resolver.INoteService.SaveNote(note)
+	noteID, err := r.Resolver.INoteService.SaveNote(ctx, note)
+	if err != nil {
+		return nil, err
+	}
+
 	userDto, err := r.Resolver.IUserService.GetUserByID(ctx, user.ID)
 	if err != nil {
 		return nil, err
@@ -48,6 +52,11 @@ func (r *mutationResolver) CreateNote(ctx context.Context, input model.NewNote) 
 	}
 
 	return newModel, nil
+}
+
+func (r *mutationResolver) DeleteNote(ctx context.Context, input int) (bool, error) {
+	isDeleted, err := r.INoteService.DeleteNote(ctx, input)
+	return isDeleted, err
 }
 
 func (r *mutationResolver) CreateUser(ctx context.Context, input model.NewUser) (string, error) {

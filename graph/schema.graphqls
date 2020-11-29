@@ -50,6 +50,7 @@ input NewUserConfig {
 
 type Mutation {
   createNote(input: NewNote!): Note!
+  deleteNote(input: Int!): Boolean!
   createUser(input: NewUser!): String!
   login(input: Login!): String!
   refreshToken(input: RefreshTokenInput!): String!

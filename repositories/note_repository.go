@@ -16,7 +16,7 @@ type INoteRepository interface {
 	UpdateNoteByFields(ctx context.Context, user entities.UpdateNote) (int, error)
 	FindNoteByID(ctx context.Context, id int) (entities.Note, error)
 	FindNotesByUserID(ctx context.Context, id int) ([]entities.Note, error)
-	DeleteNoteByID(ctx context.Context, noteID int, userID int) (int, error)
+	DeleteNoteByID(ctx context.Context, noteID int, userID int) (bool, error)
 }
 
 type NoteRepository struct {
@@ -143,24 +143,28 @@ func (nr *NoteRepository) UpdateNoteByFields(ctx context.Context, n entities.Upd
 	return int(lastId), nil
 }
 
-func (nr *NoteRepository) DeleteNoteByID(ctx context.Context, noteID int, userID int) (int, error) {
+func (nr *NoteRepository) DeleteNoteByID(ctx context.Context, noteID int, userID int) (bool, error) {
 	stmt, err := nr.DbProvider.Db.Prepare("delete from note where id = ? and fk_user = ?")
 	if err != nil {
 		logrus.WithError(err).Warn(err)
-		return 0, err
+		return false, err
 	}
 
 	res, err := stmt.Exec(noteID, userID)
 	if err != nil {
 		logrus.WithError(err).Warn(err)
-		return 0, err
+		return false, err
 	}
 
-	lastId, err := res.LastInsertId()
+	rowsAffected, err := res.RowsAffected()
 	if err != nil {
 		logrus.WithError(err).Warn(err)
-		return 0, err
+		return false, err
 	}
 
-	return int(lastId), nil
+	if rowsAffected == 0 {
+		return false, nil
+	}
+
+	return true, nil
 }
