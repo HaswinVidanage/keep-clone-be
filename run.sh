@@ -1,12 +1,18 @@
 #!/usr/bin/env bash
 
-set -e -u
+set -e
+
+if [[ -z "${MYSQL_USER}" ]]; then
+    source ./docker/docker.env
+fi
+
 
 migrate() {
+    connectionString="mysql://${MYSQL_USER}:${MYSQL_PASSWORD}@localhost:3305/${MYSQL_DATABASE}"
     if [[ $1 != '--down' ]]; then
-        migrate -database "mysql://sa:qweqwe@tcp(localhost:3305)/hackernews_db" -path internal/pkg/db/migrations/mysql down
+        migrate -database $connectionString -path internal/pkg/db/migrations/mysql down
     else
-        migrate -database "mysql://sa:qweqwe@tcp(localhost:3305)/hackernews_db" -path internal/pkg/db/migrations/mysql up
+        migrate -database $connectionString -path internal/pkg/db/migrations/mysql up
     fi
 }
 
