@@ -94,6 +94,13 @@ func (s *UserConfigRepositoryTestSuite) Test_FindUserConfigByUserID() {
 	s.Mock.ExpectPrepare(query)
 	s.Mock.ExpectQuery(query).WithArgs(1).WillReturnRows(rows)
 
+	userQuery := "select u.id, u.name, u.email from user u WHERE id = ?"
+	userRows := sqlmock.NewRows([]string{"id", "name", "email"}).
+		AddRow(1, "john", "john@mail.com")
+
+	s.Mock.ExpectPrepare(userQuery)
+	s.Mock.ExpectQuery(userQuery).WithArgs(1).WillReturnRows(userRows)
+
 	// now we execute our method
 	userConfig, err := s.Resolver.IUserConfigRepository.FindUserConfigByUserID(s.Ctx, fkUser)
 	s.Nil(err)
