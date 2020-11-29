@@ -16,7 +16,7 @@ genAll() {
 
 test() {
     go test ./... -v
-    echo "tests end"
+    echo "Test exited with exit code $?"
 }
 
 if [[ $1 = 'migrate' ]]; then

@@ -38,7 +38,7 @@ func InitMockDB() *database.DbProvider {
 	var dbCon database.DbProvider
 	db, _mock, err := sqlmock.New(sqlmock.QueryMatcherOption(sqlmock.QueryMatcherEqual))
 	if err != nil {
-		log.Fatal("an error '%s' was not expected when opening a stub database connection", err)
+		log.Fatal("an error was not expected when opening a stub database connection", err)
 	}
 	//defer db.Close()
 
