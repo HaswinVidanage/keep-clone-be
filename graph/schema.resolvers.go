@@ -100,8 +100,17 @@ func (r *mutationResolver) CreateUserConfig(ctx context.Context, input model.New
 	return configId, nil
 }
 
-func (r *mutationResolver) UpdateUserConfig(ctx context.Context, input model.UpdateUserConfig) (*int, error) {
-	panic(fmt.Errorf("not implemented"))
+func (r *mutationResolver) UpdateUserConfig(ctx context.Context, configID int, input model.UpdateUserConfig) (*int, error) {
+	configId, err := r.Resolver.IUserConfigService.Update(ctx, entities.UpdateUserConfig{
+		IsDarkMode: &input.IsDarkMode,
+		IsListMode: &input.IsListMode,
+		ID:         &configID, // todo pass as a separate variable to update method
+	})
+
+	if err != nil {
+		return nil, err
+	}
+	return configId, nil
 }
 
 func (r *queryResolver) Notes(ctx context.Context) ([]*model.Note, error) {

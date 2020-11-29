@@ -52,7 +52,7 @@ type ComplexityRoot struct {
 		DeleteNote       func(childComplexity int, input int) int
 		Login            func(childComplexity int, input model.Login) int
 		RefreshToken     func(childComplexity int, input model.RefreshTokenInput) int
-		UpdateUserConfig func(childComplexity int, input model.UpdateUserConfig) int
+		UpdateUserConfig func(childComplexity int, configID int, input model.UpdateUserConfig) int
 	}
 
 	Note struct {
@@ -92,7 +92,7 @@ type MutationResolver interface {
 	Login(ctx context.Context, input model.Login) (string, error)
 	RefreshToken(ctx context.Context, input model.RefreshTokenInput) (string, error)
 	CreateUserConfig(ctx context.Context, input model.NewUserConfig) (*int, error)
-	UpdateUserConfig(ctx context.Context, input model.UpdateUserConfig) (*int, error)
+	UpdateUserConfig(ctx context.Context, configID int, input model.UpdateUserConfig) (*int, error)
 }
 type QueryResolver interface {
 	Notes(ctx context.Context) ([]*model.Note, error)
@@ -199,7 +199,7 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 			return 0, false
 		}
 
-		return e.complexity.Mutation.UpdateUserConfig(childComplexity, args["input"].(model.UpdateUserConfig)), true
+		return e.complexity.Mutation.UpdateUserConfig(childComplexity, args["configId"].(int), args["input"].(model.UpdateUserConfig)), true
 
 	case "Note.content":
 		if e.complexity.Note.Content == nil {
@@ -441,7 +441,7 @@ type Mutation {
   login(input: Login!): String!
   refreshToken(input: RefreshTokenInput!): String!
   createUserConfig(input: NewUserConfig!): Int
-  updateUserConfig(input: UpdateUserConfig!): Int
+  updateUserConfig(configId: Int!, input: UpdateUserConfig!): Int
 }
 
 type Query {
@@ -552,15 +552,24 @@ func (ec *executionContext) field_Mutation_refreshToken_args(ctx context.Context
 func (ec *executionContext) field_Mutation_updateUserConfig_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
 	var err error
 	args := map[string]interface{}{}
-	var arg0 model.UpdateUserConfig
-	if tmp, ok := rawArgs["input"]; ok {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("input"))
-		arg0, err = ec.unmarshalNUpdateUserConfig2hackernewsᚑapiᚋgraphᚋmodelᚐUpdateUserConfig(ctx, tmp)
+	var arg0 int
+	if tmp, ok := rawArgs["configId"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("configId"))
+		arg0, err = ec.unmarshalNInt2int(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
 	}
-	args["input"] = arg0
+	args["configId"] = arg0
+	var arg1 model.UpdateUserConfig
+	if tmp, ok := rawArgs["input"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("input"))
+		arg1, err = ec.unmarshalNUpdateUserConfig2hackernewsᚑapiᚋgraphᚋmodelᚐUpdateUserConfig(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["input"] = arg1
 	return args, nil
 }
 
@@ -891,7 +900,7 @@ func (ec *executionContext) _Mutation_updateUserConfig(ctx context.Context, fiel
 	fc.Args = args
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Mutation().UpdateUserConfig(rctx, args["input"].(model.UpdateUserConfig))
+		return ec.resolvers.Mutation().UpdateUserConfig(rctx, args["configId"].(int), args["input"].(model.UpdateUserConfig))
 	})
 	if err != nil {
 		ec.Error(ctx, err)

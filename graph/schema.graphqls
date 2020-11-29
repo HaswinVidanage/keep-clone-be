@@ -59,7 +59,7 @@ type Mutation {
   login(input: Login!): String!
   refreshToken(input: RefreshTokenInput!): String!
   createUserConfig(input: NewUserConfig!): Int
-  updateUserConfig(input: UpdateUserConfig!): Int
+  updateUserConfig(configId: Int!, input: UpdateUserConfig!): Int
 }
 
 type Query {

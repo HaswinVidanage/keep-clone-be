@@ -13,6 +13,7 @@ import (
 type IUserConfigService interface {
 	GetConfig(ctx context.Context) (entities.UserConfig, error)
 	Save(ctx context.Context, uc entities.CreateUserConfig) (*int, error)
+	Update(ctx context.Context, uc entities.UpdateUserConfig) (*int, error)
 }
 
 type UserConfigService struct {
@@ -42,7 +43,6 @@ func (ucs UserConfigService) GetConfig(ctx context.Context) (entities.UserConfig
 }
 
 func (ucs UserConfigService) Save(ctx context.Context, uc entities.CreateUserConfig) (*int, error) {
-
 	userCtx := auth.ForContext(ctx)
 	if userCtx == nil {
 		log.Fatal("userCtx is nil")
@@ -50,6 +50,22 @@ func (ucs UserConfigService) Save(ctx context.Context, uc entities.CreateUserCon
 	}
 
 	lastId, err := ucs.UserConfigRepository.InsertUserConfig(ctx, userCtx.ID, uc)
+
+	if err != nil {
+		return nil, err
+	}
+	return &lastId, nil
+}
+
+func (ucs UserConfigService) Update(ctx context.Context, uc entities.UpdateUserConfig) (*int, error) {
+	userCtx := auth.ForContext(ctx)
+	if userCtx == nil {
+		log.Fatal("userCtx is nil")
+		// todo throw unauthorised error
+	}
+
+	// todo add fkUser and authorise all updates
+	lastId, err := ucs.UserConfigRepository.UpdateUserConfigByFields(ctx, uc)
 
 	if err != nil {
 		return nil, err
