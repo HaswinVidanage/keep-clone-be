@@ -88,9 +88,20 @@ func (r *mutationResolver) RefreshToken(ctx context.Context, input model.Refresh
 	return token, nil
 }
 
-func (r *mutationResolver) CreateUserConfig(ctx context.Context, input model.NewUserConfig) (int, error) {
-	configId := r.Resolver.IUserConfigService.Save(ctx, input.IsDarkMode, input.IsListMode, input.FkUser)
-	return int(configId), nil
+func (r *mutationResolver) CreateUserConfig(ctx context.Context, input model.NewUserConfig) (*int, error) {
+	configId, err := r.Resolver.IUserConfigService.Save(ctx, entities.CreateUserConfig{
+		IsDarkMode: input.IsDarkMode,
+		IsListMode: input.IsListMode,
+	})
+
+	if err != nil {
+		return nil, err
+	}
+	return configId, nil
+}
+
+func (r *mutationResolver) UpdateUserConfig(ctx context.Context, input model.UpdateUserConfig) (*int, error) {
+	panic(fmt.Errorf("not implemented"))
 }
 
 func (r *queryResolver) Notes(ctx context.Context) ([]*model.Note, error) {
@@ -112,10 +123,10 @@ func (r *queryResolver) Notes(ctx context.Context) ([]*model.Note, error) {
 }
 
 func (r *queryResolver) UserConfig(ctx context.Context) (*model.UserConfig, error) {
-	uc := r.Resolver.IUserConfigService.GetConfig(ctx)
+	uc, err := r.Resolver.IUserConfigService.GetConfig(ctx)
 
-	if uc == nil {
-		return &model.UserConfig{}, nil
+	if err != nil {
+		return nil, err
 	}
 
 	dbUC := &model.UserConfig{

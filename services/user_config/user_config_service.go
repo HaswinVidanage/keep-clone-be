@@ -3,97 +3,56 @@ package user_config
 import (
 	"context"
 	"github.com/google/wire"
-	"github.com/sirupsen/logrus"
 	"hackernews-api/entities"
 	"hackernews-api/internal/pkg/db/migrations/mysql"
+	"hackernews-api/repositories"
 	"hackernews-api/services/auth"
 	"log"
 )
 
 type IUserConfigService interface {
-	GetConfig(ctx context.Context) *entities.UserConfig
-	Save(ctx context.Context, isDarkMode bool, isListMode bool, fkUser int) int64
+	GetConfig(ctx context.Context) (entities.UserConfig, error)
+	Save(ctx context.Context, uc entities.CreateUserConfig) (*int, error)
 }
 
 type UserConfigService struct {
-	DbProvider *database.DbProvider
+	DbProvider           *database.DbProvider
+	UserConfigRepository repositories.UserConfigRepository
 }
 
 var NewUserConfigService = wire.NewSet(
 	wire.Struct(new(UserConfigService), "*"),
 	wire.Bind(new(IUserConfigService), new(*UserConfigService)))
 
-func (ucs UserConfigService) GetConfig(ctx context.Context) *entities.UserConfig {
+func (ucs UserConfigService) GetConfig(ctx context.Context) (entities.UserConfig, error) {
 	userCtx := auth.ForContext(ctx)
 
 	if userCtx == nil {
 		log.Fatal("userCtx is nil")
+		// todo throw unauthorised error
 	}
 
-	stmt, err := ucs.DbProvider.Db.Prepare("select uc.id, uc.isDarkMode, uc.isListMode, uc.fk_user, u.name from user_config uc inner join user u on uc.fk_user = u.ID where uc.fk_user = ?")
+	uc, err := ucs.UserConfigRepository.FindUserConfigByUserID(ctx, userCtx.ID)
+
 	if err != nil {
-		log.Fatal(err)
+		return entities.UserConfig{}, err
 	}
 
-	defer stmt.Close()
-	rows, err := stmt.Query(userCtx.ID)
-	if err != nil {
-		log.Fatal(err)
-	}
-	defer rows.Close()
-
-	var userConfigs []entities.UserConfig
-	var name string
-	var id int
-	for rows.Next() {
-		var userConfig entities.UserConfig
-		err := rows.Scan(&userConfig.ID, &userConfig.IsDarkMode, &userConfig.IsListMode, &id, &name)
-		if err != nil {
-			log.Fatal(err)
-		}
-
-		userConfig.User = &entities.User{
-			ID:   id,
-			Name: name,
-		}
-
-		userConfigs = append(userConfigs, userConfig)
-	}
-
-	if err = rows.Err(); err != nil {
-		logrus.WithError(err).Warn(err)
-	}
-
-	count := len(userConfigs)
-	if count > 1 {
-		logrus.WithFields(logrus.Fields{
-			"fkUser": id,
-		}).WithError(err).Warn(err)
-	} else if count == 0 {
-		return nil
-	}
-
-	return &userConfigs[0]
+	return uc, nil
 }
 
-func (ucs UserConfigService) Save(ctx context.Context, isDarkMode bool, isListMode bool, fkUser int) int64 {
-	stmt, err := ucs.DbProvider.Db.Prepare("INSERT INTO user_config (isDarkMode, isListMode, fk_user) VALUES (?,?,?)")
-	if err != nil {
-		log.Fatal(err)
+func (ucs UserConfigService) Save(ctx context.Context, uc entities.CreateUserConfig) (*int, error) {
+
+	userCtx := auth.ForContext(ctx)
+	if userCtx == nil {
+		log.Fatal("userCtx is nil")
+		// todo throw unauthorised error
 	}
 
-	//  execution of our sql statement.
-	res, err := stmt.Exec(isDarkMode, isListMode, fkUser)
-	if err != nil {
-		log.Fatal(err)
-	}
+	lastId, err := ucs.UserConfigRepository.InsertUserConfig(ctx, userCtx.ID, uc)
 
-	// retrieving Id of inserted Link.
-	id, err := res.LastInsertId()
 	if err != nil {
-		log.Fatal("Error:", err.Error())
+		return nil, err
 	}
-
-	log.Print("Row inserted!")
-	return id
+	return &lastId, nil
 }

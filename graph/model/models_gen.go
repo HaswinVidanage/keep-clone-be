@@ -21,7 +21,6 @@ type NewUser struct {
 type NewUserConfig struct {
 	IsDarkMode bool `json:"isDarkMode"`
 	IsListMode bool `json:"isListMode"`
-	FkUser     int  `json:"fkUser"`
 }
 
 type Note struct {
@@ -33,6 +32,11 @@ type Note struct {
 
 type RefreshTokenInput struct {
 	Token string `json:"token"`
+}
+
+type UpdateUserConfig struct {
+	IsDarkMode bool `json:"isDarkMode"`
+	IsListMode bool `json:"isListMode"`
 }
 
 type User struct {

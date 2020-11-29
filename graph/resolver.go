@@ -21,4 +21,5 @@ type Resolver struct {
 	user_config.IUserConfigService
 	repositories.IUserRepository
 	repositories.INoteRepository
+	repositories.IUserConfigRepository
 }

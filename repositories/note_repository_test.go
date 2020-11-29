@@ -169,9 +169,9 @@ func (s *NoteRepositoryTestSuite) Test_DeleteNoteByID() {
 	s.Mock.ExpectExec(query).WithArgs(note.ID, note.User.ID).WillReturnResult(sqlmock.NewResult(3, 1))
 
 	// now we execute our method
-	lastId, err := s.Resolver.INoteRepository.DeleteNoteByID(s.Ctx, note.ID, note.User.ID)
+	isDeleted, err := s.Resolver.INoteRepository.DeleteNoteByID(s.Ctx, note.ID, note.User.ID)
 	s.Nil(err)
-	s.Equal(4, lastId)
+	s.Equal(true, isDeleted)
 
 	// we make sure that all expectations were met
 	err = s.Mock.ExpectationsWereMet()
