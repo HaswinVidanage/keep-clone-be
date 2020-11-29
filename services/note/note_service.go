@@ -4,7 +4,6 @@ import (
 	"context"
 	"github.com/google/wire"
 	"hackernews-api/entities"
-	"hackernews-api/internal/pkg/db/migrations/mysql"
 	"hackernews-api/repositories"
 	"hackernews-api/services/auth"
 	"log"
@@ -17,7 +16,6 @@ type INoteService interface {
 }
 
 type NoteService struct {
-	DbProvider     *database.DbProvider
 	NoteRepository repositories.INoteRepository
 }
 
