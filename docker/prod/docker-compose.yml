@@ -1,9 +1,9 @@
-version: '2.2'
+version: '3'
 services:
   db:
     build:
-      context: MySQL
-    container_name: hackernews_db
+      context: ./MySQL
+    container_name: keep_db
     image: mysql:5.7
     ports:
       - "3305:3306"
@@ -11,12 +11,12 @@ services:
       - docker.env
   app:
     build:
-      context: ""
+      context: ./Go
     volumes:
-      - ./:/usr/src/hackernews-api
-    container_name: hackernews-api
+      - ./:/usr/src/keep_be
+    container_name: keep_be
     ports:
       - "8000:8080"
-    tty: true
     depends_on:
       - db
+    tty: true

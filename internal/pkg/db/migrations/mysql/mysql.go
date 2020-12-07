@@ -28,8 +28,8 @@ type DbProvider struct {
 
 func InitDB(cfg IDbConfig) *DbProvider {
 	var dbCon DbProvider
-	fmt.Println("DB HOST WIRRED : (IF EMPTY DON'T GIVE UP) :", cfg.GetDbPort())
-	db, err := sql.Open("mysql", "sa:qweqwe@tcp(localhost:3305)/hackernews_db")
+	fmt.Println("DB Port:", cfg.GetDbPort())
+	db, err := sql.Open("mysql", "sa:qweqwe@tcp(localhost:3306)/keep_db")
 	if err != nil {
 		log.Panic(err)
 	}
@@ -37,6 +37,7 @@ func InitDB(cfg IDbConfig) *DbProvider {
 	if err = db.Ping(); err != nil {
 		log.Panic(err)
 	}
+	fmt.Println("DB connection success!!!")
 	dbCon.Db = db
 	return &dbCon
 }

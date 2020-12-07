@@ -3,7 +3,7 @@
 set -e
 
 if [[ -z "${MYSQL_USER}" ]]; then
-    source ./docker/docker.env
+    source docker/dev/docker.env
 fi
 
 
@@ -25,10 +25,22 @@ test() {
     echo "Test exited with exit code $?"
 }
 
+dockerBuild() {
+ docker-compose -f ./docker/prod/docker-compose.yml up --build
+#   docker build  -f ./docker/prod/Go/Dockerfile -t keep-app .
+}
+
+dockerStop(){
+    docker container stop $(docker container ls -aq)
+    docker container rm $(docker container ls -aq)
+}
+
 if [[ $1 = 'migrate' ]]; then
     migrate $2
 elif [[ $1 = 'gen-all' ]]; then
     genAll
+elif [[ $1 = 'docker-build' ]]; then
+    dockerBuild
 elif [[ $1 = 'test' ]]; then
     test
 else

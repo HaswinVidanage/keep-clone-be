@@ -3,8 +3,8 @@ FROM golang:1.13.7
 # Force the go compiler to use modules
 ENV GO111MODULE=on
 
-RUN mkdir /usr/src/hackernews-api
-WORKDIR /usr/src/hackernews-api
+RUN mkdir /usr/src/keep_be
+WORKDIR /usr/src/keep_be
 
 # We want to populate the module cache based on the go.{mod,sum} files.
 #COPY ../go.mod .
