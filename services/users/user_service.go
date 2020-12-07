@@ -16,6 +16,7 @@ import (
 type IUserService interface {
 	CreateUser(ctx context.Context, user entities.CreateUser) (string, error)
 	GetUserIdByEmail(ctx context.Context, name string) (int, error)
+	GetUserByID(ctx context.Context, id int) (entities.User, error)
 }
 
 type UserService struct {
@@ -42,11 +43,19 @@ func (us *UserService) CreateUser(ctx context.Context, user entities.CreateUser)
 		return "", err
 	}
 
-	token, err := jwt.GenerateToken(ctx, int(lastId), user.Email)
+	token, err := jwt.GenerateToken(ctx, lastId, user.Email)
 	if err != nil {
 		return "", err
 	}
 	return token, nil
+}
+
+func (us *UserService) GetUserByID(ctx context.Context, id int) (entities.User, error) {
+	user, err := us.UserRepository.FindUserByID(ctx, id)
+	if err != nil {
+		return entities.User{}, err
+	}
+	return user, nil
 }
 
 //GetUserIdByUsername check if a user exists in database by given username

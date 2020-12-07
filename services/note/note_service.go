@@ -1,83 +1,62 @@
 package note
 
 import (
+	"context"
 	"github.com/google/wire"
 	"hackernews-api/entities"
-	"hackernews-api/internal/pkg/db/migrations/mysql"
+	"hackernews-api/repositories"
+	"hackernews-api/services/auth"
 	"log"
 )
 
-type Note struct {
-	ID      string
-	Title   string
-	Content string
-	User    *entities.User
-}
-
 type INoteService interface {
-	Save(note Note) int64
-	GetAll() []Note
+	SaveNote(ctx context.Context, note entities.Note) (int, error)
+	GetAll(ctx context.Context) ([]entities.Note, error)
+	DeleteNote(ctx context.Context, id int) (bool, error)
 }
 
 type NoteService struct {
-	DbProvider *database.DbProvider
+	NoteRepository repositories.INoteRepository
 }
 
 var NewNoteService = wire.NewSet(
 	wire.Struct(new(NoteService), "*"),
 	wire.Bind(new(INoteService), new(*NoteService)))
 
-func (ns NoteService) Save(note Note) int64 {
-	stmt, err := ns.DbProvider.Db.Prepare("INSERT INTO note(title, content, fk_user) VALUES(?,?, ?)")
-	if err != nil {
-		log.Fatal(err)
-	}
+func (ns NoteService) SaveNote(ctx context.Context, note entities.Note) (int, error) {
+	id, err := ns.NoteRepository.InsertNote(ctx, entities.CreateNote{
+		Title:   note.Title,
+		Content: note.Content,
+		User:    note.User,
+	})
 
-	//  execution of our sql statement.
-	res, err := stmt.Exec(note.Title, note.Content, note.User.ID)
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	// retrieving Id of inserted Link.
-	id, err := res.LastInsertId()
 	if err != nil {
 		log.Fatal("Error:", err.Error())
 	}
-
-	log.Print("Row inserted!")
-	return id
+	return id, nil
 }
 
-func (ns NoteService) GetAll() []Note {
-	stmt, err := ns.DbProvider.Db.Prepare("select n.id, n.title, n.content, n.fk_user, u.name from note n inner join user u on n.fk_user = u.ID") // changed
-	if err != nil {
-		log.Fatal(err)
+func (ns NoteService) GetAll(ctx context.Context) ([]entities.Note, error) {
+	userCtx := auth.ForContext(ctx)
+	if userCtx == nil {
+		log.Fatal("unauthorised")
 	}
-	defer stmt.Close()
-	rows, err := stmt.Query()
+	notes, err := ns.NoteRepository.FindNotesByUserID(ctx, userCtx.ID)
 	if err != nil {
-		log.Fatal(err)
+		return nil, err
 	}
-	defer rows.Close()
+	return notes, nil
+}
 
-	var notes []Note
-	var name string
-	var id string
-	for rows.Next() {
-		var note Note
-		err := rows.Scan(&note.ID, &note.Title, &note.Content, &id, &name)
-		if err != nil {
-			log.Fatal(err)
-		}
-		note.User = &entities.User{
-			ID:   id,
-			Name: name,
-		}
-		notes = append(notes, note)
+func (ns NoteService) DeleteNote(ctx context.Context, id int) (bool, error) {
+	userCtx := auth.ForContext(ctx)
+	if userCtx == nil {
+		log.Fatal("unauthorised")
 	}
-	if err = rows.Err(); err != nil {
-		log.Fatal(err)
+	isDeleted, err := ns.NoteRepository.DeleteNoteByID(ctx, id, userCtx.ID)
+	if err != nil {
+		return false, err
 	}
-	return notes
+
+	return isDeleted, nil
 }

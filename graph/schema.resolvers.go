@@ -10,9 +10,7 @@ import (
 	"hackernews-api/graph/generated"
 	"hackernews-api/graph/model"
 	"hackernews-api/services/auth"
-	"hackernews-api/services/note"
 	"math/rand"
-	"strconv"
 )
 
 func (r *mutationResolver) CreateNote(ctx context.Context, input model.NewNote) (*model.Note, error) {
@@ -21,21 +19,30 @@ func (r *mutationResolver) CreateNote(ctx context.Context, input model.NewNote) 
 		return &model.Note{}, fmt.Errorf("access denied")
 	}
 
-	var note note.Note
+	var note entities.Note
 	note.Title = input.Title
 	note.Content = input.Content
 	note.User = user
-	noteID := r.Resolver.INoteService.Save(note)
+
+	noteID, err := r.Resolver.INoteService.SaveNote(ctx, note)
+	if err != nil {
+		return nil, err
+	}
+
+	userDto, err := r.Resolver.IUserService.GetUserByID(ctx, user.ID)
+	if err != nil {
+		return nil, err
+	}
 
 	newModel := &model.Note{
-		ID:      strconv.FormatInt(noteID, 10),
+		ID:      int(noteID),
 		Title:   note.Title,
 		Content: note.Content,
 		// TODO move to service and get user by id
 		User: &model.User{
-			ID:    user.ID,
-			Email: user.Email,
-			Name:  user.Name,
+			ID:    userDto.ID,
+			Email: userDto.Email,
+			Name:  userDto.Name,
 		},
 	}
 
@@ -45,6 +52,11 @@ func (r *mutationResolver) CreateNote(ctx context.Context, input model.NewNote) 
 	}
 
 	return newModel, nil
+}
+
+func (r *mutationResolver) DeleteNote(ctx context.Context, input int) (bool, error) {
+	isDeleted, err := r.INoteService.DeleteNote(ctx, input)
+	return isDeleted, err
 }
 
 func (r *mutationResolver) CreateUser(ctx context.Context, input model.NewUser) (string, error) {
@@ -76,15 +88,38 @@ func (r *mutationResolver) RefreshToken(ctx context.Context, input model.Refresh
 	return token, nil
 }
 
-func (r *mutationResolver) CreateUserConfig(ctx context.Context, input model.NewUserConfig) (int, error) {
-	configId := r.Resolver.IUserConfigService.Save(ctx, input.IsDarkMode, input.IsListMode, input.FkUser)
-	return int(configId), nil
+func (r *mutationResolver) CreateUserConfig(ctx context.Context, input model.NewUserConfig) (*int, error) {
+	configId, err := r.Resolver.IUserConfigService.Save(ctx, entities.CreateUserConfig{
+		IsDarkMode: input.IsDarkMode,
+		IsListMode: input.IsListMode,
+	})
+
+	if err != nil {
+		return nil, err
+	}
+	return configId, nil
+}
+
+func (r *mutationResolver) UpdateUserConfig(ctx context.Context, configID int, input model.UpdateUserConfig) (*int, error) {
+	configId, err := r.Resolver.IUserConfigService.Update(ctx, entities.UpdateUserConfig{
+		IsDarkMode: &input.IsDarkMode,
+		IsListMode: &input.IsListMode,
+		ID:         &configID, // todo pass as a separate variable to update method
+	})
+
+	if err != nil {
+		return nil, err
+	}
+	return configId, nil
 }
 
 func (r *queryResolver) Notes(ctx context.Context) ([]*model.Note, error) {
 	var resultNotes []*model.Note
-	var dbNotes []note.Note
-	dbNotes = r.Resolver.INoteService.GetAll()
+	var dbNotes []entities.Note
+	dbNotes, err := r.Resolver.INoteService.GetAll(ctx)
+	if err != nil {
+		return nil, err
+	}
 	for _, note := range dbNotes {
 		grahpqlUser := &model.User{
 			ID:    note.User.ID,
@@ -97,10 +132,10 @@ func (r *queryResolver) Notes(ctx context.Context) ([]*model.Note, error) {
 }
 
 func (r *queryResolver) UserConfig(ctx context.Context) (*model.UserConfig, error) {
-	uc := r.Resolver.IUserConfigService.GetConfig(ctx)
+	uc, err := r.Resolver.IUserConfigService.GetConfig(ctx)
 
-	if uc == nil {
-		return &model.UserConfig{}, nil
+	if err != nil {
+		return nil, err
 	}
 
 	dbUC := &model.UserConfig{

@@ -3,21 +3,21 @@
 # https://gqlgen.com/getting-started/
 
 type Note {
-  id: ID!
+  id: Int!
   title: String!
   content: String!
   user: User!
 }
 
 type UserConfig {
-  id: ID!
+  id: Int!
   isDarkMode: Boolean!
   isListMode: Boolean!
   user: User!
 }
 
 type User {
-  id: ID!
+  id: Int!
   name: String!
   email: String!
 }
@@ -45,15 +45,21 @@ input Login {
 input NewUserConfig {
   isDarkMode: Boolean!
   isListMode: Boolean!
-  fkUser: Int!
+}
+
+input UpdateUserConfig {
+  isDarkMode: Boolean!
+  isListMode: Boolean!
 }
 
 type Mutation {
   createNote(input: NewNote!): Note!
+  deleteNote(input: Int!): Boolean!
   createUser(input: NewUser!): String!
   login(input: Login!): String!
   refreshToken(input: RefreshTokenInput!): String!
-  createUserConfig(input: NewUserConfig!): Int!
+  createUserConfig(input: NewUserConfig!): Int
+  updateUserConfig(configId: Int!, input: UpdateUserConfig!): Int
 }
 
 type Query {
