@@ -1,8 +1,7 @@
 version: '3'
 services:
   db:
-    build:
-      context: ./MySQL
+    build: ./docker/db
     container_name: keep_db
     image: mysql:5.7
     ports:
