@@ -29,7 +29,7 @@ type DbProvider struct {
 func InitDB(cfg IDbConfig) *DbProvider {
 	var dbCon DbProvider
 	fmt.Println("DB Port:", cfg.GetDbPort())
-	db, err := sql.Open("mysql", "sa:qweqwe@tcp(localhost:3306)/keep_db")
+	db, err := sql.Open("mysql", "sa:qweqwe@tcp(keep_db:3306)/keep_db")
 	if err != nil {
 		log.Panic(err)
 	}

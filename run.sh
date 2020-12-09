@@ -26,7 +26,7 @@ test() {
 }
 
 dockerBuild() {
- docker-compose -f ./docker/prod/docker-compose.yml up --build
+ docker-compose build -t keep-app .
 #   docker build  -f ./docker/prod/Go/Dockerfile -t keep-app .
 }
 
