@@ -36,4 +36,7 @@ jobs:
       run: ./run.sh test
 
     - name: Deploy
+      env: # Or as an environment variable
+        HEROKU_API_KEY: ${{ secrets.HEROKU_API_KEY }}
+        ENV_CONFIG: ${{ secrets.ENV_CONFIG }}
       run: ./run.sh deploy
