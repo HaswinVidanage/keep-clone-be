@@ -29,7 +29,6 @@ type DbProvider struct {
 func InitDB(cfg IDbConfig) *DbProvider {
 	var dbCon DbProvider
 	connectionStr := fmt.Sprintf("%s:%s@tcp(%s:%s)/%s", cfg.GetDbUsername(), cfg.GetDbPassword(), cfg.GetDbHost(), cfg.GetDbPort(), cfg.GetDbDatabase())
-	log.Println("Connection string: ", connectionStr)
 	db, err := sql.Open("mysql", connectionStr)
 	if err != nil {
 		log.Panic(err)
