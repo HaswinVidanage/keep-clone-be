@@ -1,0 +1,25 @@
+version: '3'
+services:
+  db:
+    build:
+      context: ./docker/db
+      dockerfile: ./Dockerfile.db
+    container_name: keep_db
+    image: mysql:5.7
+    ports:
+      - "3306:3306"
+    env_file:
+      - docker.env
+  web:
+    build:
+      context: ""
+      dockerfile: ./Dockerfile.web
+    volumes:
+      - ./:/usr/src/keep_be
+    container_name: keep_be
+    ports:
+      - "8080:8080"
+    depends_on:
+      - db
+    restart: on-failure
+    tty: true

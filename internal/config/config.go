@@ -8,7 +8,7 @@ import (
 
 type Config struct {
 	DB struct {
-		Host           string `default:"localhost2" env:"MYSQL_HOST"`
+		Host           string `default:"localhost" env:"MYSQL_HOST"`
 		Port           string `default:"3306" env:"MYSQL_PORT"`
 		Username       string `default:"" env:"MYSQL_USER"`
 		Password       string `default:"" env:"MYSQL_PASSWORD"`
