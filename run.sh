@@ -15,7 +15,7 @@ migrate() {
 }
 
 deploy() {
-    base64 --decode -i ${ENV_CONFIG} -o config.yml
+    echo ${ENV_CONFIG} | base64 --decode > config.yml
     curl https://cli-assets.heroku.com/install-ubuntu.sh | sh
     heroku auth:token
     heroku container:push --recursive
