@@ -34,3 +34,6 @@ jobs:
 
     - name: Test
       run: ./run.sh test
+
+    - name: Deploy
+      run: ./run.sh deploy

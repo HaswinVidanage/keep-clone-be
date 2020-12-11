@@ -16,6 +16,15 @@ migrate() {
     fi
 }
 
+deploy() {
+    base64 --decode -i ${ENV_CONFIG} -o config.yml
+    curl https://cli-assets.heroku.com/install-ubuntu.sh | sh
+    heroku auth:token
+    heroku container:push --recursive
+    heroku container:release web db
+    heroku logs
+}
+
 genAll() {
     go generate ./...
 }
