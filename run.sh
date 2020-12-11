@@ -21,9 +21,10 @@ deploy() {
     echo ${ENV_CONFIG} | base64 --decode > config.yml
     curl https://cli-assets.heroku.com/install-ubuntu.sh | sh
     HEROKU_API_KEY=${HEROKU_API_KEY} heroku auth:token
-    HEROKU_API_KEY=${HEROKU_API_KEY} heroku container:push --recursive
-    HEROKU_API_KEY=${HEROKU_API_KEY} heroku container:release web db
-    HEROKU_API_KEY=${HEROKU_API_KEY} heroku logs
+    HEROKU_API_KEY=${HEROKU_API_KEY} heroku container:login
+    HEROKU_API_KEY=${HEROKU_API_KEY} heroku container:push --recursive --app immense-castle-46865
+    HEROKU_API_KEY=${HEROKU_API_KEY} heroku container:release web db --app immense-castle-46865
+    HEROKU_API_KEY=${HEROKU_API_KEY} heroku logs --app immense-castle-46865
 }
 
 genAll() {
