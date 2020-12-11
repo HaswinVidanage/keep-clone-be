@@ -15,7 +15,9 @@ migrate() {
 }
 
 deploy() {
+    echo "ENV CONFIG ----"
     echo ${ENV_CONFIG}
+    echo "ENV CONFIG end ----"
     echo ${ENV_CONFIG} | base64 --decode > config.yml
     curl https://cli-assets.heroku.com/install-ubuntu.sh | sh
     HEROKU_API_KEY=${HEROKU_API_KEY} heroku auth:token
