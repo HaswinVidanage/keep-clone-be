@@ -15,17 +15,14 @@ migrate() {
 }
 
 deploy() {
-    echo "ENV CONFIG ----"
-    echo ${ENV_CONFIG}
-    echo "ENV CONFIG end ----"
     echo ${ENV_CONFIG} | base64 --decode > config.yml
     cat config.yml
     curl https://cli-assets.heroku.com/install-ubuntu.sh | sh
-    HEROKU_API_KEY=${HEROKU_API_KEY} heroku auth:token
-    HEROKU_API_KEY=${HEROKU_API_KEY} heroku container:login
-    HEROKU_API_KEY=${HEROKU_API_KEY} heroku container:push --recursive --app immense-castle-46865
-    HEROKU_API_KEY=${HEROKU_API_KEY} heroku container:release web db --app immense-castle-46865
-    HEROKU_API_KEY=${HEROKU_API_KEY} heroku logs --app immense-castle-46865
+    heroku auth:token
+    heroku container:login
+    heroku container:push --recursive --app ${HEROKU_APP_NAME}
+    heroku container:release web db --app ${HEROKU_APP_NAME}
+    heroku logs --app ${HEROKU_APP_NAME}
 }
 
 genAll() {
