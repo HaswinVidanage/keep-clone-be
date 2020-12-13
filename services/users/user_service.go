@@ -20,10 +20,10 @@ type IUserService interface {
 }
 
 type UserService struct {
-	DbProvider *database.DbProvider
-
-	UserRepository repositories.IUserRepository
-	AuthService    auth.IAuthService
+	DbProvider           *database.DbProvider
+	UserConfigRepository repositories.IUserConfigRepository
+	UserRepository       repositories.IUserRepository
+	AuthService          auth.IAuthService
 }
 
 var NewUserService = wire.NewSet(
@@ -37,14 +37,26 @@ func (us *UserService) CreateUser(ctx context.Context, user entities.CreateUser)
 	}
 	user.Password = hashedPassword
 
-	lastId, err := us.UserRepository.InsertUser(ctx, user)
+	fkUser, err := us.UserRepository.InsertUser(ctx, user)
 	if err != nil {
 		logrus.WithError(err).Warn(err)
 		return "", err
 	}
 
-	token, err := jwt.GenerateToken(ctx, lastId, user.Email)
+	// insert user config
+	_, err = us.UserConfigRepository.InsertUserConfig(ctx, fkUser, entities.CreateUserConfig{
+		IsDarkMode: false,
+		IsListMode: false,
+	})
+
 	if err != nil {
+		logrus.WithError(err).Warn(err)
+		return "", err
+	}
+
+	token, err := jwt.GenerateToken(ctx, fkUser, user.Email)
+	if err != nil {
+		logrus.WithError(err).Warn(err)
 		return "", err
 	}
 	return token, nil

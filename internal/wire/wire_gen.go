@@ -27,6 +27,10 @@ func GetApp() (*App, error) {
 	userRepository := &repositories.UserRepository{
 		DbProvider: dbProvider,
 	}
+	userConfigRepository := &repositories.UserConfigRepository{
+		DbProvider:     dbProvider,
+		UserRepository: userRepository,
+	}
 	authRepository := repositories.AuthRepository{
 		DbProvider: dbProvider,
 	}
@@ -34,9 +38,10 @@ func GetApp() (*App, error) {
 		AuthRepository: authRepository,
 	}
 	userService := &users.UserService{
-		DbProvider:     dbProvider,
-		UserRepository: userRepository,
-		AuthService:    authService,
+		DbProvider:           dbProvider,
+		UserConfigRepository: userConfigRepository,
+		UserRepository:       userRepository,
+		AuthService:          authService,
 	}
 	noteRepository := &repositories.NoteRepository{
 		DbProvider:     dbProvider,
@@ -45,17 +50,13 @@ func GetApp() (*App, error) {
 	noteService := &note.NoteService{
 		NoteRepository: noteRepository,
 	}
-	userConfigRepository := repositories.UserConfigRepository{
+	repositoriesUserConfigRepository := repositories.UserConfigRepository{
 		DbProvider:     dbProvider,
 		UserRepository: userRepository,
 	}
 	userConfigService := &user_config.UserConfigService{
 		DbProvider:           dbProvider,
-		UserConfigRepository: userConfigRepository,
-	}
-	repositoriesUserConfigRepository := &repositories.UserConfigRepository{
-		DbProvider:     dbProvider,
-		UserRepository: userRepository,
+		UserConfigRepository: repositoriesUserConfigRepository,
 	}
 	resolver := graph.Resolver{
 		IUserService:          userService,
@@ -64,7 +65,7 @@ func GetApp() (*App, error) {
 		IUserConfigService:    userConfigService,
 		IUserRepository:       userRepository,
 		INoteRepository:       noteRepository,
-		IUserConfigRepository: repositoriesUserConfigRepository,
+		IUserConfigRepository: userConfigRepository,
 	}
 	app := &App{
 		Resolver:          resolver,
@@ -83,6 +84,10 @@ func GetTestApp() (*test.TestApp, error) {
 	userRepository := &repositories.UserRepository{
 		DbProvider: dbProvider,
 	}
+	userConfigRepository := &repositories.UserConfigRepository{
+		DbProvider:     dbProvider,
+		UserRepository: userRepository,
+	}
 	authRepository := repositories.AuthRepository{
 		DbProvider: dbProvider,
 	}
@@ -90,9 +95,10 @@ func GetTestApp() (*test.TestApp, error) {
 		AuthRepository: authRepository,
 	}
 	userService := &users.UserService{
-		DbProvider:     dbProvider,
-		UserRepository: userRepository,
-		AuthService:    authService,
+		DbProvider:           dbProvider,
+		UserConfigRepository: userConfigRepository,
+		UserRepository:       userRepository,
+		AuthService:          authService,
 	}
 	noteRepository := &repositories.NoteRepository{
 		DbProvider:     dbProvider,
@@ -101,17 +107,13 @@ func GetTestApp() (*test.TestApp, error) {
 	noteService := &note.NoteService{
 		NoteRepository: noteRepository,
 	}
-	userConfigRepository := repositories.UserConfigRepository{
+	repositoriesUserConfigRepository := repositories.UserConfigRepository{
 		DbProvider:     dbProvider,
 		UserRepository: userRepository,
 	}
 	userConfigService := &user_config.UserConfigService{
 		DbProvider:           dbProvider,
-		UserConfigRepository: userConfigRepository,
-	}
-	repositoriesUserConfigRepository := &repositories.UserConfigRepository{
-		DbProvider:     dbProvider,
-		UserRepository: userRepository,
+		UserConfigRepository: repositoriesUserConfigRepository,
 	}
 	resolver := &graph.Resolver{
 		IUserService:          userService,
@@ -120,7 +122,7 @@ func GetTestApp() (*test.TestApp, error) {
 		IUserConfigService:    userConfigService,
 		IUserRepository:       userRepository,
 		INoteRepository:       noteRepository,
-		IUserConfigRepository: repositoriesUserConfigRepository,
+		IUserConfigRepository: userConfigRepository,
 	}
 	testAppOptions := &test.TestAppOptions{
 		Resolver: resolver,
