@@ -6,7 +6,7 @@ migrate() {
     if [[ -z "${MYSQL_USER}" ]]; then
         source docker.env
     fi
-    connectionString="mysql://${MYSQL_USER}:${MYSQL_PASSWORD}@localhost:3305/${MYSQL_DATABASE}"
+    connectionString="mysql://${MYSQL_USER}:${MYSQL_PASSWORD}@localhost:3306/${MYSQL_DATABASE}"
     if [[ $1 != '--down' ]]; then
         migrate -database $connectionString -path internal/pkg/db/migrations/mysql down
     else
