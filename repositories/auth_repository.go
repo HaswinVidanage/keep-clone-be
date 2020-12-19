@@ -26,7 +26,8 @@ var NewAuthRepository = wire.NewSet(
 func (ar *AuthRepository) GetHashedPasswordByUserEmail(ctx context.Context, email string) (string, error) {
 	statement, err := ar.DbProvider.Db.Prepare("select password from user WHERE email = ?")
 	if err != nil {
-		log.Fatal(err)
+		log.Print(err)
+		return "", err
 	}
 	row := statement.QueryRow(email)
 
@@ -47,7 +48,8 @@ func (ar *AuthRepository) GetHashedPasswordByUserEmail(ctx context.Context, emai
 func (ar *AuthRepository) GetUserIdByEmail(ctx context.Context, email string) (int, error) {
 	statement, err := ar.DbProvider.Db.Prepare("select id from user WHERE email = ?")
 	if err != nil {
-		log.Fatal(err)
+		log.Print(err)
+		return 0, err
 	}
 	row := statement.QueryRow(email)
 

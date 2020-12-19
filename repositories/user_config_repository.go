@@ -8,7 +8,6 @@ import (
 	"github.com/sirupsen/logrus"
 	"hackernews-api/entities"
 	"hackernews-api/internal/pkg/db/migrations/mysql"
-	"log"
 )
 
 type IUserConfigRepository interface {
@@ -77,7 +76,8 @@ func (ucr *UserConfigRepository) UpdateUserConfigByFields(ctx context.Context, n
 func (ucr *UserConfigRepository) FindUserConfigByUserID(ctx context.Context, fkUser int) (entities.UserConfig, error) {
 	stmt, err := ucr.DbProvider.Db.Prepare("select n.id, n.isDarkMode, n.isListMode from user_config n where n.fk_user = ?")
 	if err != nil {
-		log.Fatal(err)
+		logrus.WithError(err).Warn(err)
+		return entities.UserConfig{}, err
 	}
 	defer stmt.Close()
 
@@ -86,8 +86,10 @@ func (ucr *UserConfigRepository) FindUserConfigByUserID(ctx context.Context, fkU
 	err = row.Scan(&uc.ID, &uc.IsDarkMode, &uc.IsListMode)
 	if err != nil {
 		if err != sql.ErrNoRows {
-			log.Print(err)
+			// todo handle error
+			//logrus.WithError(err).Warn(err)
 		}
+		logrus.WithError(err).Warn(err)
 		return entities.UserConfig{}, err
 	}
 
@@ -95,8 +97,9 @@ func (ucr *UserConfigRepository) FindUserConfigByUserID(ctx context.Context, fkU
 	user, err := ucr.UserRepository.FindUserByID(ctx, fkUser)
 	if err != nil {
 		if err != sql.ErrNoRows {
-			log.Print(err)
+			// todo handle error
 		}
+		logrus.WithError(err).Warn(err)
 		return entities.UserConfig{}, err
 	}
 	uc.User = &user

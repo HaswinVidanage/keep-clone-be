@@ -2,11 +2,12 @@ package note
 
 import (
 	"context"
+	"errors"
 	"github.com/google/wire"
+	"github.com/sirupsen/logrus"
 	"hackernews-api/entities"
 	"hackernews-api/repositories"
 	"hackernews-api/services/auth"
-	"log"
 )
 
 type INoteService interface {
@@ -31,7 +32,8 @@ func (ns NoteService) SaveNote(ctx context.Context, note entities.Note) (int, er
 	})
 
 	if err != nil {
-		log.Fatal("Error:", err.Error())
+		logrus.WithError(err)
+		return 0, err
 	}
 	return id, nil
 }
@@ -39,7 +41,9 @@ func (ns NoteService) SaveNote(ctx context.Context, note entities.Note) (int, er
 func (ns NoteService) GetAll(ctx context.Context) ([]entities.Note, error) {
 	userCtx := auth.ForContext(ctx)
 	if userCtx == nil {
-		log.Fatal("unauthorised")
+		err := errors.New("unauthorised")
+		logrus.WithError(err).Warn(err)
+		return nil, err
 	}
 	notes, err := ns.NoteRepository.FindNotesByUserID(ctx, userCtx.ID)
 	if err != nil {
@@ -51,10 +55,13 @@ func (ns NoteService) GetAll(ctx context.Context) ([]entities.Note, error) {
 func (ns NoteService) DeleteNote(ctx context.Context, id int) (bool, error) {
 	userCtx := auth.ForContext(ctx)
 	if userCtx == nil {
-		log.Fatal("unauthorised")
+		err := errors.New("unauthorised")
+		logrus.WithError(err).Warn(err)
+		return false, err
 	}
 	isDeleted, err := ns.NoteRepository.DeleteNoteByID(ctx, id, userCtx.ID)
 	if err != nil {
+		logrus.WithError(err).Warn(err)
 		return false, err
 	}
 

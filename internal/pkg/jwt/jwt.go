@@ -4,7 +4,7 @@ import (
 	"context"
 	"errors"
 	"github.com/dgrijalva/jwt-go"
-	"log"
+	"github.com/sirupsen/logrus"
 	"time"
 )
 
@@ -26,7 +26,7 @@ func GenerateToken(ctx context.Context, userId int, email string) (string, error
 
 	tokenString, err := token.SignedString(SecretKey)
 	if err != nil {
-		log.Fatal("Error in Generating key")
+		logrus.WithError(err).Warn(err)
 		return "", err
 	}
 	return tokenString, nil

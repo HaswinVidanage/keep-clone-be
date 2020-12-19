@@ -55,7 +55,8 @@ func (ur *UserRepository) InsertUser(ctx context.Context, user entities.CreateUs
 func (ur *UserRepository) GetUserIdByEmail(ctx context.Context, email string) (int, error) {
 	statement, err := ur.DbProvider.Db.Prepare("select id from user WHERE email = ?")
 	if err != nil {
-		log.Fatal(err)
+		logrus.WithError(err).Warn(err)
+		return 0, err
 	}
 	row := statement.QueryRow(email)
 
@@ -63,8 +64,9 @@ func (ur *UserRepository) GetUserIdByEmail(ctx context.Context, email string) (i
 	err = row.Scan(&Id)
 	if err != nil {
 		if err != sql.ErrNoRows {
-			log.Print(err)
+			// todo handle error
 		}
+		logrus.WithError(err).Warn(err)
 		return 0, err
 	}
 
@@ -100,7 +102,8 @@ func (ur *UserRepository) UpdateUserByFields(ctx context.Context, u entities.Upd
 func (ur *UserRepository) FindUserByID(ctx context.Context, id int) (entities.User, error) {
 	statement, err := ur.DbProvider.Db.Prepare("select u.id, u.name, u.email from user u WHERE id = ?")
 	if err != nil {
-		log.Fatal(err)
+		logrus.WithError(err).Warn(err)
+		return entities.User{}, err
 	}
 	row := statement.QueryRow(id)
 	var user entities.User
@@ -117,7 +120,8 @@ func (ur *UserRepository) FindUserByID(ctx context.Context, id int) (entities.Us
 func (ur *UserRepository) FindUserByEmail(ctx context.Context, email string) (entities.User, error) {
 	statement, err := ur.DbProvider.Db.Prepare("select u.id, u.name, u.email from user u WHERE email = ?")
 	if err != nil {
-		log.Fatal(err)
+		log.Print(err)
+		return entities.User{}, err
 	}
 	row := statement.QueryRow(email)
 	var user entities.User
