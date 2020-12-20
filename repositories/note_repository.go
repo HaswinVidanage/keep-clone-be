@@ -53,7 +53,8 @@ func (nr *NoteRepository) InsertNote(ctx context.Context, note entities.CreateNo
 func (nr *NoteRepository) FindNoteByID(ctx context.Context, id int) (entities.Note, error) {
 	statement, err := nr.DbProvider.Db.Prepare("select n.id, n.title, n.content, n.fk_user from note n WHERE n.id = ?")
 	if err != nil {
-		log.Fatal(err)
+		logrus.WithError(err)
+		return entities.Note{}, err
 	}
 	row := statement.QueryRow(id)
 	var note entities.Note
@@ -91,12 +92,14 @@ func (nr *NoteRepository) FindNotesByUserID(ctx context.Context, id int) ([]enti
 
 	stmt, err := nr.DbProvider.Db.Prepare("select n.id, n.title, n.content from note n where n.fk_user = ?")
 	if err != nil {
-		log.Fatal(err)
+		log.Print(err)
+		return []entities.Note{}, err
 	}
 	defer stmt.Close()
 	rows, err := stmt.Query(id)
 	if err != nil {
-		log.Fatal(err)
+		log.Print(err)
+		return []entities.Note{}, err
 	}
 	defer rows.Close()
 
@@ -105,13 +108,15 @@ func (nr *NoteRepository) FindNotesByUserID(ctx context.Context, id int) ([]enti
 		var note entities.Note
 		err := rows.Scan(&note.ID, &note.Title, &note.Content)
 		if err != nil {
-			log.Fatal(err)
+			log.Print(err)
+			return []entities.Note{}, err
 		}
 		note.User = &user
 		notes = append(notes, note)
 	}
 	if err = rows.Err(); err != nil {
-		log.Fatal(err)
+		log.Print(err)
+		return []entities.Note{}, err
 	}
 
 	return notes, nil

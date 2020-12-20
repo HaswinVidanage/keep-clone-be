@@ -7,6 +7,7 @@ import (
 	"github.com/golang-migrate/migrate"
 	"github.com/golang-migrate/migrate/database/mysql"
 	_ "github.com/golang-migrate/migrate/source/file"
+	"github.com/sirupsen/logrus"
 	"log"
 )
 
@@ -44,7 +45,8 @@ func InitDB(cfg IDbConfig) *DbProvider {
 
 func (cp DbProvider) Migrate() {
 	if err := cp.Db.Ping(); err != nil {
-		log.Fatal(err)
+		logrus.WithError(err).Error(err)
+		return
 	}
 	driver, _ := mysql.WithInstance(cp.Db, &mysql.Config{})
 	m, _ := migrate.NewWithDatabaseInstance(
@@ -53,6 +55,7 @@ func (cp DbProvider) Migrate() {
 		driver,
 	)
 	if err := m.Up(); err != nil && err != migrate.ErrNoChange {
-		log.Fatal(err)
+		logrus.WithError(err).Error(err)
+		return
 	}
 }

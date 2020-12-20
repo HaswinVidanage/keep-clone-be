@@ -29,7 +29,7 @@ func main() {
 	}
 
 	handlerCors := cors.New(cors.Options{
-		AllowedOrigins:   []string{"http://localhost:*"},
+		AllowedOrigins:   []string{"http://localhost:*", "https://keep-fe-clone.herokuapp.com"},
 		AllowedHeaders:   []string{"*"},
 		AllowCredentials: true,
 		Debug:            true,

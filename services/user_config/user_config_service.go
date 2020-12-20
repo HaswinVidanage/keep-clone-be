@@ -2,12 +2,13 @@ package user_config
 
 import (
 	"context"
+	"errors"
 	"github.com/google/wire"
+	"github.com/sirupsen/logrus"
 	"hackernews-api/entities"
 	"hackernews-api/internal/pkg/db/migrations/mysql"
 	"hackernews-api/repositories"
 	"hackernews-api/services/auth"
-	"log"
 )
 
 type IUserConfigService interface {
@@ -29,13 +30,14 @@ func (ucs UserConfigService) GetConfig(ctx context.Context) (entities.UserConfig
 	userCtx := auth.ForContext(ctx)
 
 	if userCtx == nil {
-		log.Fatal("userCtx is nil")
-		// todo throw unauthorised error
+		logrus.Warn("user context is nil")
+		return entities.UserConfig{}, errors.New("unauthorised")
 	}
 
 	uc, err := ucs.UserConfigRepository.FindUserConfigByUserID(ctx, userCtx.ID)
 
 	if err != nil {
+		logrus.WithError(err)
 		return entities.UserConfig{}, err
 	}
 
@@ -45,8 +47,8 @@ func (ucs UserConfigService) GetConfig(ctx context.Context) (entities.UserConfig
 func (ucs UserConfigService) Save(ctx context.Context, uc entities.CreateUserConfig) (*int, error) {
 	userCtx := auth.ForContext(ctx)
 	if userCtx == nil {
-		log.Fatal("userCtx is nil")
-		// todo throw unauthorised error
+		logrus.Warn("userCtx is nil")
+		return nil, errors.New("unauthorised")
 	}
 
 	lastId, err := ucs.UserConfigRepository.InsertUserConfig(ctx, userCtx.ID, uc)
@@ -60,8 +62,8 @@ func (ucs UserConfigService) Save(ctx context.Context, uc entities.CreateUserCon
 func (ucs UserConfigService) Update(ctx context.Context, uc entities.UpdateUserConfig) (*int, error) {
 	userCtx := auth.ForContext(ctx)
 	if userCtx == nil {
-		log.Fatal("userCtx is nil")
-		// todo throw unauthorised error
+		logrus.Warn("userCtx is nil")
+		return nil, errors.New("unauthorised")
 	}
 
 	// todo add fkUser and authorise all updates

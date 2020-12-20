@@ -10,7 +10,6 @@ import (
 	"hackernews-api/internal/pkg/jwt"
 	"hackernews-api/repositories"
 	"hackernews-api/services/auth"
-	"log"
 )
 
 type IUserService interface {
@@ -33,7 +32,8 @@ var NewUserService = wire.NewSet(
 func (us *UserService) CreateUser(ctx context.Context, user entities.CreateUser) (string, error) {
 	hashedPassword, err := us.AuthService.HashPassword(user.Password)
 	if err != nil {
-		log.Fatal(err)
+		logrus.WithError(err)
+		return "", err
 	}
 	user.Password = hashedPassword
 
@@ -74,7 +74,8 @@ func (us *UserService) GetUserByID(ctx context.Context, id int) (entities.User, 
 func (us *UserService) GetUserIdByEmail(ctx context.Context, email string) (int, error) {
 	id, err := us.UserRepository.GetUserIdByEmail(ctx, email)
 	if err != nil {
-		log.Fatal(err)
+		logrus.WithError(err).Warn(err)
+		return 0, err
 	}
 
 	return id, err
